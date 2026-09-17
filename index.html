@@ -21,22 +21,28 @@
   .scene{
     position:relative;
     width:100vw;height:100vh;
-    background:url("assets/c64-desk.jpg") center center / cover no-repeat;
+    display:flex;align-items:center;justify-content:center;
+    background:#000;
+  }
+  #photo{
+    display:block;
+    max-width:100vw;
+    max-height:100vh;
+    width:auto;height:auto;
   }
 
   .crt-overlay{
     position:absolute;
-    left:21%; top:15%;
-    width:27.6%; height:25%;
     clip-path: polygon(2% 4%, 98% 4%, 90% 96%, 10% 96%);
     padding: 3% 4%;
     color:var(--c64-text);
     text-shadow:0 0 4px var(--c64-glow), 0 0 1px var(--c64-white);
-    font-size: clamp(8px, 1.15vw, 15px);
+    font-size: clamp(7px, 1.6vw, 15px);
     line-height:1.45;
     white-space:pre-wrap;
     background: rgba(15,20,60,0.06);
     overflow:hidden;
+    pointer-events:auto;
   }
   .cursor{
     display:inline-block;width:.55em;height:1em;background:var(--c64-white);
@@ -48,9 +54,8 @@
 
   .kb-wrap{
     position:absolute;
-    left:9%; top:44%;
-    width:60%; height:20%;
     perspective: 900px;
+    pointer-events:none;
     -webkit-mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
     mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
   }
@@ -97,15 +102,44 @@
 </head>
 <body>
 
-<div class="scene">
+<div class="scene" id="scene">
+  <img id="photo" src="assets/c64-desk.jpg" alt="Commodore 64 desk">
   <div class="crt-overlay" id="screen" tabindex="0"></div>
-
-  <div class="kb-wrap">
+  <div class="kb-wrap" id="kbWrap">
     <div class="kb-plate" id="kbPlate"></div>
   </div>
 </div>
 
 <script>
+const SCREEN_REGION = { left: 0.2104, top: 0.1501, width: 0.2759, height: 0.2502 };
+const KB_REGION     = { left: 0.0991, top: 0.4504, width: 0.5869, height: 0.1835 };
+
+const photo = document.getElementById('photo');
+const screenEl = document.getElementById('screen');
+const kbWrap = document.getElementById('kbWrap');
+
+function layout(){
+  const rect = photo.getBoundingClientRect();
+  const sceneRect = document.getElementById('scene').getBoundingClientRect();
+  const offX = rect.left - sceneRect.left;
+  const offY = rect.top - sceneRect.top;
+  const w = rect.width, h = rect.height;
+
+  screenEl.style.left = (offX + SCREEN_REGION.left * w) + 'px';
+  screenEl.style.top = (offY + SCREEN_REGION.top * h) + 'px';
+  screenEl.style.width = (SCREEN_REGION.width * w) + 'px';
+  screenEl.style.height = (SCREEN_REGION.height * h) + 'px';
+
+  kbWrap.style.left = (offX + KB_REGION.left * w) + 'px';
+  kbWrap.style.top = (offY + KB_REGION.top * h) + 'px';
+  kbWrap.style.width = (KB_REGION.width * w) + 'px';
+  kbWrap.style.height = (KB_REGION.height * h) + 'px';
+}
+
+if(photo.complete){ layout(); } else { photo.addEventListener('load', layout); }
+window.addEventListener('resize', layout);
+window.addEventListener('orientationchange', layout);
+
 const programs = [
   { file: "PAREIDOLIA", href: "https://pareidolia.tallkidd.com" },
   { file: "TARIFFS", href: "https://tariffs.tallkidd.com" },
@@ -139,6 +173,7 @@ rows.forEach(rowData=>{
   });
   kbPlate.appendChild(rowEl);
 });
+layout();
 
 function pressKey(ch){
   const lower = ch.toLowerCase();
@@ -151,7 +186,7 @@ function pressKey(ch){
   }
 }
 
-const screen = document.getElementById('screen');
+const screen = screenEl;
 const disk = 'TALLKIDD DISK';
 let out = '';
 

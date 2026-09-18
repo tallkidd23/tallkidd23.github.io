@@ -3,58 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>tallkidd.com</title>
+<title>tallkidd.com — Main Machine</title>
 <style>
   :root {
     --c64-text: #8fdcff;
     --c64-glow: #4fb8ff;
     --c64-white: #f2fbff;
-    --key-face: #2c2c30;
-    --key-hi: #3c3c42;
-    --key-label: #d9d6cf;
-    --plate: #8a7550;
-    --plate-hi: #b09a6c;
+    --key-face: #29282a;
+    --key-hi: #414045;
+    --key-label: #e1ddd2;
+    --plate: #a18762;
+    --plate-hi: #c5ad80;
   }
 
   * { box-sizing: border-box; }
 
   html, body {
     margin: 0;
-    height: 100%;
-    background: #000;
+    min-height: 100%;
+    background: #050505;
     font-family: "Courier New", monospace;
-    overflow: hidden;
   }
 
   .scene {
     position: relative;
     width: 100vw;
-    height: 100vh;
+    min-height: 100svh;
     display: flex;
-    align-items: center;
     justify-content: center;
-    background: #000;
+    align-items: center;
+    overflow: hidden;
+    background: #050505;
   }
 
+  /* Replace this source image at assets/c64-main-machine.jpg */
   #photo {
     display: block;
     max-width: 100vw;
-    max-height: 100vh;
+    max-height: 100svh;
     width: auto;
     height: auto;
   }
 
-  /* Blank, simulated blue CRT screen hiding the original photo text. */
+  /* This completely covers the old words already in the photo's CRT. */
   .crt {
     position: absolute;
     overflow: hidden;
-    clip-path: polygon(3% 5%, 97% 5%, 91% 95%, 9% 95%);
-    border-radius: 18% / 12%;
+    border-radius: 7% / 10%;
     background:
-      radial-gradient(ellipse at 46% 40%, #26467f 0%, #1b336a 48%, #101d46 78%, #070d25 100%);
+      radial-gradient(ellipse at 48% 39%, #24477f 0%, #193466 54%, #10234e 78%, #080f28 100%);
     box-shadow:
-      inset 0 0 20px 6px rgba(0, 0, 0, .55),
-      inset 0 0 70px rgba(0, 0, 0, .55);
+      inset 0 0 12px 4px rgba(0, 0, 0, .48),
+      inset 0 0 42px rgba(0, 0, 0, .55),
+      0 0 5px rgba(53, 129, 255, .18);
   }
 
   .crt::before {
@@ -67,22 +68,22 @@
         to bottom,
         rgba(255, 255, 255, .025) 0,
         rgba(255, 255, 255, .025) 1px,
-        rgba(0, 0, 0, .10) 2px,
-        rgba(0, 0, 0, .10) 3px
+        rgba(0, 0, 0, .11) 2px,
+        rgba(0, 0, 0, .11) 3px
       ),
-      radial-gradient(ellipse at 26% 13%, rgba(255, 255, 255, .10), transparent 34%);
+      radial-gradient(ellipse at 28% 13%, rgba(255, 255, 255, .10), transparent 32%);
     mix-blend-mode: screen;
-    opacity: .7;
+    opacity: .72;
   }
 
   .terminal {
     position: absolute;
     inset: 0;
-    padding: 4.5% 6%;
+    padding: 5% 6.5%;
     color: var(--c64-text);
     text-shadow: 0 0 4px var(--c64-glow), 0 0 1px var(--c64-white);
-    font-size: clamp(7px, 1.45vw, 15px);
-    line-height: 1.43;
+    font-size: clamp(7px, 1.35vw, 16px);
+    line-height: 1.40;
     white-space: pre-wrap;
     overflow: hidden;
     cursor: text;
@@ -92,14 +93,13 @@
     display: inline-block;
     width: .55em;
     height: 1em;
+    margin-left: .04em;
     background: var(--c64-white);
     vertical-align: -1px;
     animation: blink 1s steps(1) infinite;
   }
 
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
+  @keyframes blink { 50% { opacity: 0; } }
 
   a.prog {
     color: var(--c64-white);
@@ -107,27 +107,25 @@
     cursor: pointer;
   }
 
-  a.prog:hover,
-  a.prog:focus {
+  a.prog:hover, a.prog:focus {
+    color: #17315f;
     background: var(--c64-white);
-    color: #20305a;
     outline: none;
   }
 
   .tap-hint {
     position: absolute;
-    right: 8%;
-    bottom: 5%;
-    font-size: .62em;
-    opacity: .8;
+    right: 7%;
+    bottom: 4%;
+    font-size: .60em;
     letter-spacing: .03em;
+    opacity: .8;
     animation: pulse 1.8s ease-in-out infinite;
   }
 
-  @keyframes pulse {
-    50% { opacity: .25; }
-  }
+  @keyframes pulse { 50% { opacity: .22; } }
 
+  /* Hidden but real field: tapping the CRT opens the iPhone keyboard. */
   #mobileInput {
     position: fixed;
     left: -1000px;
@@ -138,42 +136,46 @@
     font-size: 16px;
   }
 
-  /* Hybrid CSS keyboard; adjusted to lie inside the photographed keyboard body. */
+  /* Flat, centered CSS keyboard fitted to the new straight-on photo. */
   .kb-wrap {
     position: absolute;
-    perspective: 900px;
-    -webkit-mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
-    mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
+    pointer-events: auto;
   }
 
   .kb-plate {
     position: absolute;
     inset: 0;
-    background: linear-gradient(165deg, var(--plate-hi) 0%, var(--plate) 55%, #6e5c3d 100%);
-    border-radius: 6% / 14%;
-    transform: rotateX(16deg) rotateZ(-.6deg) scaleY(.86);
-    transform-origin: 50% 100%;
-    box-shadow: inset 0 6px 14px rgba(0, 0, 0, .35), 0 10px 20px rgba(0, 0, 0, .4);
-    padding: 5% 3%;
+    border-radius: 3% / 9%;
+    background: linear-gradient(180deg, var(--plate-hi), var(--plate) 54%, #765f42);
+    box-shadow:
+      inset 0 5px 11px rgba(255, 255, 255, .18),
+      inset 0 -8px 12px rgba(0, 0, 0, .30),
+      0 7px 14px rgba(0, 0, 0, .35);
+    padding: 5% 4.4%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 3%;
+    gap: 4%;
   }
 
-  .kb-row { display: flex; gap: .4%; }
+  .kb-row { display: flex; gap: .55%; }
 
   .key {
     flex: 1 1 auto;
+    min-width: 0;
     background: linear-gradient(180deg, var(--key-hi), var(--key-face));
     border-radius: 3px;
-    box-shadow: 0 2px 0 #111, 0 3px 3px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08);
+    box-shadow:
+      0 2px 0 #121214,
+      0 3px 3px rgba(0, 0, 0, .55),
+      inset 0 1px 0 rgba(255, 255, 255, .08);
     color: var(--key-label);
-    font-size: clamp(5px, .78vw, 9px);
+    font-size: clamp(4px, .70vw, 10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform .05s ease-out, box-shadow .05s ease-out;
+    text-align: center;
+    transition: transform .055s ease-out, box-shadow .055s ease-out;
     user-select: none;
     cursor: pointer;
   }
@@ -183,17 +185,17 @@
 
   .key.active {
     transform: translateY(2px);
-    box-shadow: 0 0 0 #111, 0 1px 1px rgba(0, 0, 0, .5), inset 0 1px 2px rgba(0, 0, 0, .5);
-    background: linear-gradient(180deg, #4a4a52, #26262a);
+    box-shadow: 0 0 0 #121214, 0 1px 1px rgba(0, 0, 0, .5), inset 0 1px 2px rgba(0, 0, 0, .55);
+    background: linear-gradient(180deg, #4e4d55, #242326);
   }
 </style>
 </head>
 <body>
 <div class="scene" id="scene">
-  <img id="photo" src="assets/c64-desk.jpg" alt="Commodore 64 desk">
+  <img id="photo" src="assets/c64-main-machine.jpg" alt="A Commodore 64 main machine on a retro desk">
 
   <div class="crt" id="crt">
-    <div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Commodore terminal"></div>
+    <div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div>
   </div>
 
   <div class="kb-wrap" id="kbWrap">
@@ -204,15 +206,19 @@
 <input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Commodore command input">
 
 <script>
-  /* Adjusted from the latest portrait-phone screenshot. */
-  const SCREEN_REGION = { left: .222, top: .173, width: .247, height: .205 };
-  const KB_REGION = { left: .100, top: .494, width: .575, height: .145 };
+  /*
+    Coordinates for the NEW straight-on photo (1312 x 1199).
+    These use fractions of the actual displayed image, so they stay
+    attached to the equipment on phone and desktop screens.
+  */
+  const SCREEN_REGION = { left: .285, top: .185, width: .295, height: .235 };
+  const KB_REGION = { left: .190, top: .470, width: .530, height: .180 };
 
   const photo = document.getElementById('photo');
+  const scene = document.getElementById('scene');
   const crt = document.getElementById('crt');
   const screen = document.getElementById('screen');
   const kbWrap = document.getElementById('kbWrap');
-  const scene = document.getElementById('scene');
   const mobileInput = document.getElementById('mobileInput');
 
   function place(element, region, x, y, width, height) {
@@ -234,7 +240,7 @@
   if (photo.complete) layout();
   else photo.addEventListener('load', layout);
   window.addEventListener('resize', layout);
-  window.addEventListener('orientationchange', () => setTimeout(layout, 100));
+  window.addEventListener('orientationchange', () => setTimeout(layout, 120));
 
   const programs = [
     { file: 'PAREIDOLIA', href: 'https://pareidolia.tallkidd.com' },
@@ -291,15 +297,16 @@
     screen.scrollTop = screen.scrollHeight;
   }
 
-  function typeText(text, speed = 42) {
+  function typeText(text, speed = 40) {
     return new Promise(resolve => {
-      let i = 0;
+      let index = 0;
       const timer = setInterval(() => {
-        const char = text[i];
+        const char = text[index];
         out += char;
         if (char.trim()) flash(char.toLowerCase());
         render();
-        if (++i >= text.length) {
+        index += 1;
+        if (index >= text.length) {
           clearInterval(timer);
           resolve();
         }
@@ -307,14 +314,13 @@
     });
   }
 
-  function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
   function listing() {
-    let html = out + `0 "TALLKIDD DISK" 64\n`;
+    let html = out + '0 "TALLKIDD MAIN MACHINE" 64\n';
     programs.forEach((program, index) => {
-      html += `${String((index + 1) * 3).padStart(3, ' ')} <a class="prog" href="${program.href}" data-file="${program.file}">"${program.file}"</a> PRG\n`;
+      const blocks = String((index + 1) * 3).padStart(3, ' ');
+      html += `${blocks} <a class="prog" href="${program.href}" data-file="${program.file}">"${program.file}"</a> PRG\n`;
     });
     return html + '664 BLOCKS FREE\n\n';
   }
@@ -323,13 +329,13 @@
     await typeText('**** COMMODORE 64 BASIC V2 ****\n\n', 24);
     await typeText('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 18);
     await typeText('READY.\n', 28);
-    await wait(450);
+    await wait(420);
     await typeText('LOAD "$",8\n', 60);
     await wait(220);
     await typeText('SEARCHING FOR $\n', 30);
-    await wait(300);
+    await wait(320);
     await typeText('LOADING\nREADY.\n', 30);
-    await wait(150);
+    await wait(160);
     await typeText('LIST\n\n', 52);
     out = listing();
     render();
@@ -381,11 +387,11 @@
     ready = false;
     out += `LOAD "${file}",8,1\n`;
     render();
-    await wait(250);
+    await wait(240);
     await typeText(`SEARCHING FOR ${file}\n`, 30);
-    await wait(400);
+    await wait(420);
     await typeText('LOADING\nREADY.\nRUN\n', 30);
-    await wait(400);
+    await wait(430);
     window.location.href = href;
   }
 

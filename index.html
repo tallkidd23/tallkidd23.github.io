@@ -24,7 +24,9 @@
   --c64-glow: rgba(44, 88, 157, 0.34);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html,
 body {
@@ -47,6 +49,11 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
+/*
+  Current aligned CRT overlay.
+  Terminal line-height is reduced so about two more
+  lines remain visible before the text scrolls off top.
+*/
 .crt {
   position: absolute;
   left: 42.225%;
@@ -60,7 +67,7 @@ body {
   color: var(--c64-blue);
   font-family: C64Pro, "Courier New", monospace;
   font-size: clamp(3px, 0.47vw, 5px);
-  line-height: 1.19;
+  line-height: 0.98;
   white-space: pre-wrap;
   text-shadow: 0 0 1px var(--c64-glow);
   border-radius: 9% 9% 11% 11% / 7% 7% 9% 9%;
@@ -88,7 +95,9 @@ body {
   scrollbar-width: none;
 }
 
-.terminal::-webkit-scrollbar { display: none; }
+.terminal::-webkit-scrollbar {
+  display: none;
+}
 
 .output,
 .command {
@@ -103,7 +112,7 @@ body {
 }
 
 .command {
-  min-height: 1.19em;
+  min-height: 0.98em;
   text-align: left;
   white-space: pre-wrap;
 }
@@ -118,9 +127,15 @@ body {
 }
 
 @keyframes blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
+/*
+  Invisible text input lets phones use their keyboard
+  after tapping the CRT.
+*/
 .mobile-input {
   position: absolute;
   opacity: 0;
@@ -131,6 +146,7 @@ body {
   border: 0;
 }
 
+/* Desktop keyboard press overlay */
 .keys {
   position: absolute;
   left: 30%;
@@ -161,6 +177,7 @@ body {
   transform: translateY(1px);
 }
 
+/* Fresh-cut carved desk instructions, with no underline */
 .carved {
   position: absolute;
   left: 18%;
@@ -182,7 +199,6 @@ body {
 
 .carved span {
   display: inline-block;
-  position: relative;
   padding: 0.08em 0.36em 0.05em;
   text-shadow:
     -0.8px -0.7px 0 rgba(35, 16, 7, 0.55),
@@ -190,24 +206,47 @@ body {
     0 1.5px 1.5px rgba(28, 12, 5, 0.28);
 }
 
-.carved span::after { display: none; }
-
 @media (max-width: 700px) {
-  body { place-items: start center; }
-  .scene { width: 100vw; margin-top: 5vh; }
-  .crt { font-size: clamp(3px, 1.12vw, 5px); }
-  .carved { top: 95.9%; font-size: clamp(12px, 3.6vw, 18px); }
-  .keys { display: none; }
+  body {
+    place-items: start center;
+  }
+
+  .scene {
+    width: 100vw;
+    margin-top: 5vh;
+  }
+
+  .crt {
+    font-size: clamp(3px, 1.12vw, 5px);
+  }
+
+  .carved {
+    top: 95.9%;
+    font-size: clamp(12px, 3.6vw, 18px);
+  }
+
+  .keys {
+    display: none;
+  }
 }
 </style>
 </head>
 
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
-  <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
+
+  <section
+    class="crt"
+    id="crt"
+    aria-label="Commodore 64 terminal"
+    tabindex="0"
+  >
     <div class="terminal" id="terminal">
       <div class="output" id="output"></div>
-      <div class="command"><span id="command"></span><span class="cursor" aria-hidden="true"></span></div>
+
+      <div class="command">
+        <span id="command"></span><span class="cursor" aria-hidden="true"></span>
+      </div>
     </div>
 
     <input
@@ -280,6 +319,7 @@ function boot() {
   ];
 
   let n = 0;
+
   const next = () => {
     if (n < intro.length) {
       line(intro[n++]);
@@ -289,20 +329,31 @@ function boot() {
       draw();
     }
   };
+
   next();
 }
 
 function press(code) {
   const key = document.querySelector(`[data-code="${code}"]`);
-  if (!key) return;
+
+  if (!key) {
+    return;
+  }
+
   key.classList.add("down");
-  setTimeout(() => key.classList.remove("down"), 100);
+
+  setTimeout(() => {
+    key.classList.remove("down");
+  }, 100);
 }
 
 function addCharacters(text) {
   for (const char of text) {
-    if (char && char !== "\n" && char !== "\r") buffer += char.toUpperCase();
+    if (char && char !== "\n" && char !== "\r") {
+      buffer += char.toUpperCase();
+    }
   }
+
   draw();
 }
 
@@ -320,10 +371,13 @@ function loadProgram(name) {
 }
 
 function execute() {
-  if (!ready) return;
+  if (!ready) {
+    return;
+  }
 
   const raw = buffer;
   const cmd = raw.trim().toUpperCase();
+
   line(raw);
   buffer = "";
 
@@ -332,7 +386,20 @@ function execute() {
     return;
   }
 
-  if (cmd === "DIR" || cmd === "DIRECTORY" || cmd === 'LOAD "$",8' || cmd === 'LOAD "$",8,1') {
+  /*
+    Directory commands:
+
+    DIR
+    DIRECTORY
+    LOAD "$",8
+    LOAD "$",8,1
+  */
+  if (
+    cmd === "DIR" ||
+    cmd === "DIRECTORY" ||
+    cmd === 'LOAD "$",8' ||
+    cmd === 'LOAD "$",8,1'
+  ) {
     directory();
     line("READY.");
     return;
@@ -346,17 +413,34 @@ function execute() {
     }
 
     line("BOOTING " + loaded + "...");
-    setTimeout(() => location.assign(programs[loaded]), 700);
+
+    setTimeout(() => {
+      location.assign(programs[loaded]);
+    }, 700);
+
     return;
   }
 
+  /*
+    Supported loading styles:
+
+    LOAD "JESSEOS",8,1
+    LOAD JESSEOS,8,1
+    JESSEOS LOAD,8,1
+  */
   const official = cmd.match(
     /^LOAD\s+["']?([A-Z0-9]+)["']?\s*(?:,\s*8\s*(?:,\s*1)?)?$/
   );
+
   const casual = cmd.match(
     /^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*(?:,\s*1)?)?$/
   );
-  const name = official ? official[1] : casual ? casual[1] : null;
+
+  const name = official
+    ? official[1]
+    : casual
+      ? casual[1]
+      : null;
 
   if (!name) {
     line("?SYNTAX ERROR");
@@ -369,28 +453,44 @@ function execute() {
 
 document.addEventListener("keydown", (event) => {
   press(event.code);
-  if (!ready || event.target === mobile) return;
+
+  if (!ready || event.target === mobile) {
+    return;
+  }
 
   if (event.key === "Enter") {
     event.preventDefault();
     execute();
-  } else if (event.key === "Backspace") {
+    return;
+  }
+
+  if (event.key === "Backspace") {
     event.preventDefault();
     buffer = buffer.slice(0, -1);
     draw();
-  } else if (
+    return;
+  }
+
+  if (
     event.key.length === 1 &&
-    !event.metaKey && !event.ctrlKey && !event.altKey
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey
   ) {
     event.preventDefault();
     addCharacters(event.key);
   }
 });
 
-crt.addEventListener("click", () => mobile.focus());
+crt.addEventListener("click", () => {
+  mobile.focus();
+});
 
 mobile.addEventListener("beforeinput", (event) => {
-  if (!ready) return;
+  if (!ready) {
+    return;
+  }
+
   if (event.inputType === "deleteContentBackward") {
     event.preventDefault();
     buffer = buffer.slice(0, -1);
@@ -413,21 +513,34 @@ mobile.addEventListener("keydown", (event) => {
 });
 
 const codes = [
-  "F1", "F3", "F5", "F7", "F2", "F4", "F6", "F8", "Escape", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Backspace",
-  "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "BracketLeft", "BracketRight", "Enter", "KeyA", "KeyS",
-  "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "Semicolon", "Quote", "ShiftLeft", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB",
-  "KeyN", "KeyM", "Comma", "Period", "Slash", "ShiftRight", "Space", "Space", "Space", "Space", "Space", "Space"
+  "F1", "F3", "F5", "F7", "F2",
+  "F4", "F6", "F8", "Escape", "Digit1",
+  "Digit2", "Digit3", "Digit4", "Digit5", "Backspace",
+
+  "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT",
+  "KeyY", "KeyU", "KeyI", "KeyO", "KeyP",
+  "BracketLeft", "BracketRight", "Enter", "KeyA", "KeyS",
+
+  "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
+  "KeyK", "KeyL", "Semicolon", "Quote", "ShiftLeft",
+  "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB",
+
+  "KeyN", "KeyM", "Comma", "Period", "Slash",
+  "ShiftRight", "Space", "Space", "Space", "Space",
+  "Space", "Space"
 ];
 
 for (let rowNumber = 0; rowNumber < 4; rowNumber++) {
   const row = document.createElement("div");
   row.className = "key-row";
+
   for (let column = 0; column < 15; column++) {
     const key = document.createElement("i");
     key.className = "key";
     key.dataset.code = codes[rowNumber * 15 + column] || "";
     row.appendChild(key);
   }
+
   keys.appendChild(row);
 }
 

@@ -47,12 +47,12 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
-/* CRT reduced by 0.5% on each side from the previous overlay. */
+/* CRT reduced by another 1% on each side. */
 .crt {
   position: absolute;
-  left: 41.225%;
+  left: 42.225%;
   top: 41.95%;
-  width: 27.2%;
+  width: 26.2%;
   height: 18.55%;
   padding: 1.05% 1.15%;
   overflow: hidden;
@@ -110,6 +110,7 @@ body {
 .command {
   flex: none;
   min-height: 1.19em;
+  text-align: left;
 }
 
 .cursor {
@@ -195,15 +196,7 @@ body {
 }
 
 .carved span::after {
-  content: "";
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  bottom: -1px;
-  height: 1px;
-  background: rgba(255, 205, 128, 0.35);
-  box-shadow: 0 -1px 1px rgba(35, 14, 6, 0.22);
-  opacity: 0.85;
+  display: none;
 }
 
 @media (max-width: 700px) {
@@ -284,8 +277,7 @@ function boot() {
     "",
     "64K RAM SYSTEM 38911 BASIC BYTES FREE",
     "",
-    "READY.",
-    ""
+    "READY."
   ];
 
   let n = 0;
@@ -295,7 +287,6 @@ function boot() {
       setTimeout(next, 175);
     } else {
       ready = true;
-      line("READY.");
       draw();
     }
   };

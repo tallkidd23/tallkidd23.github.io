@@ -22,7 +22,6 @@
 :root {
   --c64-blue: #2a4a7f;
   --c64-glow: rgba(44, 88, 157, 0.34);
-  --line-height: 0.98em;
 }
 
 * {
@@ -50,22 +49,24 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
-/* The current correctly aligned CRT overlay */
+/* 
+  Top shifted up to 41.2% and height expanded to 19.3%
+  Zero top padding so text reaches the very top scanlines of the CRT!
+*/
 .crt {
   position: absolute;
   left: 42.225%;
-  top: 41.95%;
+  top: 41.2%;
   width: 26.2%;
-  height: 18.55%;
-  padding: 1.05% 1.15%;
+  height: 19.3%;
+  padding: 0 1.15% 0.5% 1.15%;
   overflow: hidden;
   isolation: isolate;
   cursor: text;
   color: var(--c64-blue);
   font-family: C64Pro, "Courier New", monospace;
   font-size: clamp(3px, 0.47vw, 5px);
-  line-height: 0.98;
-  white-space: pre-wrap;
+  line-height: 1.12;
   text-shadow: 0 0 1px var(--c64-glow);
   border-radius: 9% 9% 11% 11% / 7% 7% 9% 9%;
 }
@@ -85,55 +86,32 @@ body {
   );
 }
 
-/*
-  Fixed terminal frame:
-  the output scrolls within its own full-size region,
-  and the prompt is independently pinned at lower-left.
+/* 
+  Pure inline document flow: 
+  The cursor is rendered directly inside the text buffer at the end of the line.
 */
 .terminal {
-  position: relative;
+  width: 100%;
   height: 100%;
-  overflow: hidden;
-}
-
-.output,
-.command {
-  color: var(--c64-blue);
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.output {
-  position: absolute;
-  inset: 0;
-  padding-bottom: var(--line-height);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
   white-space: pre-wrap;
-}
-
-.output::-webkit-scrollbar {
-  display: none;
-}
-
-.command {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  min-height: var(--line-height);
+  word-break: break-all;
+  margin: 0;
+  padding: 0;
   text-align: left;
-  white-space: pre-wrap;
-  background: transparent;
+}
+
+.terminal::-webkit-scrollbar {
+  display: none;
 }
 
 .cursor {
   display: inline-block;
-  width: 0.67em;
-  height: 1.03em;
-  vertical-align: -0.13em;
+  width: 0.65em;
+  height: 0.95em;
+  vertical-align: -0.05em;
   background: var(--c64-blue);
   animation: blink 1s steps(1, end) infinite;
 }
@@ -185,7 +163,7 @@ body {
   transform: translateY(1px);
 }
 
-/* Lighter fresh-wood desk carving, without underline */
+/* Carved desk text */
 .carved {
   position: absolute;
   left: 18%;
@@ -243,19 +221,8 @@ body {
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
 
-  <section
-    class="crt"
-    id="crt"
-    aria-label="Commodore 64 terminal"
-    tabindex="0"
-  >
-    <div class="terminal" id="terminal">
-      <div class="output" id="output"></div>
-
-      <div class="command" id="prompt">
-        <span id="command"></span><span class="cursor" aria-hidden="true"></span>
-      </div>
-    </div>
+  <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
+    <div class="terminal" id="terminal"></div>
 
     <input
       id="mobileInput"
@@ -284,74 +251,64 @@ const programs = {
 };
 
 const crt = document.getElementById("crt");
-const out = document.getElementById("output");
-const command = document.getElementById("command");
+const terminal = document.getElementById("terminal");
 const mobile = document.getElementById("mobileInput");
 const keys = document.getElementById("keys");
 
+let historyText = "";
 let buffer = "";
 let loaded = null;
 let ready = false;
 
-function scrollLog() {
-  out.scrollTop = out.scrollHeight;
+function render() {
+  let outputHtml = historyText;
+  if (ready) {
+    outputHtml += buffer;
+    outputHtml += '<span class="cursor" aria-hidden="true"></span>';
+  }
+  terminal.innerHTML = outputHtml;
+  terminal.scrollTop = terminal.scrollHeight;
 }
 
-function draw() {
-  command.textContent = ready ? buffer : "";
-  requestAnimationFrame(scrollLog);
-}
-
-function line(text = "") {
-  out.textContent += (out.textContent ? "\n" : "") + text;
-  draw();
+function appendLine(text = "") {
+  historyText += text + "\n";
+  render();
 }
 
 function directory() {
-  line('0 "TALLKIDD DISK" 00 2A');
-  line('10 "JESSEOS" PRG');
-  line('20 "PAREIDOLIA" PRG');
-  line('30 "CCTV" PRG');
-  line("38911 BLOCKS FREE.");
+  appendLine('0 "TALLKIDD DISK" 00 2A');
+  appendLine('10 "JESSEOS" PRG');
+  appendLine('20 "PAREIDOLIA" PRG');
+  appendLine('30 "CCTV" PRG');
+  appendLine("38911 BLOCKS FREE.");
 }
 
 function boot() {
   const intro = [
-    "",
     "**** COMMODORE 64 BASIC V2 ****",
-    "",
     "64K RAM SYSTEM 38911 BASIC BYTES FREE",
     "",
     "READY."
   ];
 
   let n = 0;
-
   const next = () => {
     if (n < intro.length) {
-      line(intro[n++]);
+      appendLine(intro[n++]);
       setTimeout(next, 175);
     } else {
       ready = true;
-      draw();
+      render();
     }
   };
-
   next();
 }
 
 function press(code) {
   const key = document.querySelector(`[data-code="${code}"]`);
-
-  if (!key) {
-    return;
-  }
-
+  if (!key) return;
   key.classList.add("down");
-
-  setTimeout(() => {
-    key.classList.remove("down");
-  }, 100);
+  setTimeout(() => key.classList.remove("down"), 100);
 }
 
 function addCharacters(text) {
@@ -360,36 +317,32 @@ function addCharacters(text) {
       buffer += char.toUpperCase();
     }
   }
-
-  draw();
+  render();
 }
 
 function loadProgram(name) {
   if (!(name in programs)) {
-    line("?FILE NOT FOUND ERROR");
-    line("READY.");
+    appendLine("?FILE NOT FOUND ERROR");
+    appendLine("READY.");
     return;
   }
-
   loaded = name;
-  line("SEARCHING FOR " + name);
-  line("LOADING");
-  line("READY.");
+  appendLine("SEARCHING FOR " + name);
+  appendLine("LOADING");
+  appendLine("READY.");
 }
 
 function execute() {
-  if (!ready) {
-    return;
-  }
+  if (!ready) return;
 
   const raw = buffer;
   const cmd = raw.trim().toUpperCase();
 
-  line(raw);
+  appendLine(raw);
   buffer = "";
 
   if (!cmd) {
-    line("READY.");
+    appendLine("READY.");
     return;
   }
 
@@ -400,43 +353,30 @@ function execute() {
     cmd === 'LOAD "$",8,1'
   ) {
     directory();
-    line("READY.");
+    appendLine("READY.");
     return;
   }
 
   if (cmd === "RUN") {
     if (!loaded) {
-      line("?FILE NOT FOUND ERROR");
-      line("READY.");
+      appendLine("?FILE NOT FOUND ERROR");
+      appendLine("READY.");
       return;
     }
-
-    line("BOOTING " + loaded + "...");
-
+    appendLine("BOOTING " + loaded + "...");
     setTimeout(() => {
       location.assign(programs[loaded]);
     }, 700);
-
     return;
   }
 
-  const official = cmd.match(
-    /^LOAD\s+["']?([A-Z0-9]+)["']?\s*(?:,\s*8\s*(?:,\s*1)?)?$/
-  );
-
-  const casual = cmd.match(
-    /^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*(?:,\s*1)?)?$/
-  );
-
-  const name = official
-    ? official[1]
-    : casual
-      ? casual[1]
-      : null;
+  const official = cmd.match(/^LOAD\s+["']?([A-Z0-9]+)["']?\s*(?:,\s*8\s*(?:,\s*1)?)?$/);
+  const casual = cmd.match(/^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*(?:,\s*1)?)?$/);
+  const name = official ? official[1] : (casual ? casual[1] : null);
 
   if (!name) {
-    line("?SYNTAX ERROR");
-    line("READY.");
+    appendLine("?SYNTAX ERROR");
+    appendLine("READY.");
     return;
   }
 
@@ -445,30 +385,20 @@ function execute() {
 
 document.addEventListener("keydown", (event) => {
   press(event.code);
-
-  if (!ready || event.target === mobile) {
-    return;
-  }
+  if (!ready || event.target === mobile) return;
 
   if (event.key === "Enter") {
     event.preventDefault();
     execute();
     return;
   }
-
   if (event.key === "Backspace") {
     event.preventDefault();
     buffer = buffer.slice(0, -1);
-    draw();
+    render();
     return;
   }
-
-  if (
-    event.key.length === 1 &&
-    !event.metaKey &&
-    !event.ctrlKey &&
-    !event.altKey
-  ) {
+  if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
     event.preventDefault();
     addCharacters(event.key);
   }
@@ -479,14 +409,11 @@ crt.addEventListener("click", () => {
 });
 
 mobile.addEventListener("beforeinput", (event) => {
-  if (!ready) {
-    return;
-  }
-
+  if (!ready) return;
   if (event.inputType === "deleteContentBackward") {
     event.preventDefault();
     buffer = buffer.slice(0, -1);
-    draw();
+    render();
   }
 });
 
@@ -508,15 +435,12 @@ const codes = [
   "F1", "F3", "F5", "F7", "F2",
   "F4", "F6", "F8", "Escape", "Digit1",
   "Digit2", "Digit3", "Digit4", "Digit5", "Backspace",
-
   "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT",
   "KeyY", "KeyU", "KeyI", "KeyO", "KeyP",
   "BracketLeft", "BracketRight", "Enter", "KeyA", "KeyS",
-
   "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
   "KeyK", "KeyL", "Semicolon", "Quote", "ShiftLeft",
   "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB",
-
   "KeyN", "KeyM", "Comma", "Period", "Slash",
   "ShiftRight", "Space", "Space", "Space", "Space",
   "Space", "Space"
@@ -525,14 +449,12 @@ const codes = [
 for (let rowNumber = 0; rowNumber < 4; rowNumber++) {
   const row = document.createElement("div");
   row.className = "key-row";
-
   for (let column = 0; column < 15; column++) {
     const key = document.createElement("i");
     key.className = "key";
     key.dataset.code = codes[rowNumber * 15 + column] || "";
     row.appendChild(key);
   }
-
   keys.appendChild(row);
 }
 

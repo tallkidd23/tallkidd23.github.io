@@ -8,23 +8,24 @@
 <style>
 @font-face{font-family:C64Pro;src:url('https://raw.githubusercontent.com/tallkidd23/JesseOS/main/C64_Pro-STYLE.woff2') format('woff2');font-display:swap}
 :root{--blue:#9cc6ff;--glow:rgba(130,185,255,.5)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#05070b}body{min-height:100vh;display:grid;place-items:center;overflow-x:hidden;background:#05070b}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#05070b}body{min-height:100vh;display:grid;place-items:center;overflow-x:hidden}
 .scene{position:relative;width:min(100vw,1024px);aspect-ratio:1;background:url('assets/C64.PNG') center/contain no-repeat}
-.crt{position:absolute;left:39.5%;top:42.1%;width:21.2%;height:18.55%;padding:1.05% 1.15%;overflow:hidden;isolation:isolate;cursor:text;color:var(--blue);font-family:C64Pro,'Courier New',monospace;font-size:clamp(6px,.94vw,10px);line-height:1.19;letter-spacing:0;white-space:pre-wrap;text-shadow:0 0 2px var(--glow);border-radius:9% 9% 11% 11%/7% 7% 9% 9%}
+.crt{position:absolute;left:40.25%;top:42.1%;width:21.2%;height:18.55%;padding:1.05% 1.15%;overflow:hidden;isolation:isolate;cursor:text;color:var(--blue);font-family:C64Pro,'Courier New',monospace;font-size:clamp(6px,.94vw,10px);line-height:1.19;white-space:pre-wrap;text-shadow:0 0 2px var(--glow);border-radius:9% 9% 11% 11%/7% 7% 9% 9%}
 .crt:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(13,39,98,.05) 0,rgba(13,39,98,.05) 1px,transparent 1px,transparent 3px)}
 .output{min-height:100%}.command{color:#c8deff}.cursor{display:inline-block;width:.67em;height:1.03em;vertical-align:-.13em;background:var(--blue);animation:blink 1s steps(1,end) infinite}@keyframes blink{50%{opacity:0}}
 .mobile-input{position:absolute;opacity:0;width:1px;height:1px;left:0;top:0;border:0}
 .keys{position:absolute;left:30%;top:71.15%;width:39.7%;height:7.7%;display:grid;grid-template-rows:repeat(4,1fr);gap:4%;padding:.2% .5%;pointer-events:none}.key-row{display:grid;grid-template-columns:repeat(15,1fr);gap:1.8%}.key{border-radius:18%;transition:background .055s,transform .055s}.key.down{background:rgba(255,255,255,.38);box-shadow:inset 0 1px 3px rgba(0,0,0,.7);transform:translateY(1px)}
-.hint{position:fixed;z-index:2;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;color:#b8d3ed;font:11px/1.2 C64Pro,'Courier New',monospace;text-align:center;text-shadow:0 1px 2px #000;opacity:.86;white-space:nowrap}
-@media(max-width:700px){body{place-items:start center}.scene{width:100vw;margin-top:5vh}.crt{font-size:clamp(6px,2.25vw,10px)}.hint{font-size:8px}.keys{display:none}}
+.carved{position:absolute;left:18%;top:88.5%;width:64%;color:rgba(35,20,12,.72);font:clamp(7px,1vw,11px)/1 C64Pro,'Courier New',monospace;text-align:center;letter-spacing:.04em;transform:perspective(280px) rotateX(7deg) rotateZ(-.35deg);text-shadow:1px 1px 0 rgba(215,160,98,.48),-1px -1px 1px rgba(18,9,5,.55);filter:contrast(1.08);pointer-events:none;white-space:nowrap}
+.carved span{display:inline-block;border-bottom:1px solid rgba(42,22,11,.35);padding:.2em .45em .12em;box-shadow:inset 0 1px 0 rgba(220,170,108,.22),inset 0 -2px 2px rgba(18,8,3,.28)}
+@media(max-width:700px){body{place-items:start center}.scene{width:100vw;margin-top:5vh}.crt{font-size:clamp(6px,2.25vw,10px)}.carved{top:88.5%;font-size:clamp(5px,1.9vw,8px)}.keys{display:none}}
 </style>
 </head>
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
 <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0"><div class="output" id="output"></div><span class="command" id="command"></span><span class="cursor" aria-hidden="true"></span><input id="mobileInput" class="mobile-input" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="C64 command input"></section>
 <div class="keys" id="keys" aria-hidden="true"></div>
+<div class="carved" aria-hidden="true"><span>TAP SCREEN · LOAD "NAME",8,1 · RUN</span></div>
 </main>
-<p class="hint">TAP THE BLUE SCREEN TO TYPE · LOAD "NAME",8,1 · RUN</p>
 <script>
 const programs={PAREIDOLIA:'https://pareidolia.tallkidd.com',JESSEOS:'https://jesseos.tallkidd.com',CCTV:'https://cctv.tallkidd.com',ARCADE:null};
 const crt=document.getElementById('crt'),out=document.getElementById('output'),command=document.getElementById('command'),mobile=document.getElementById('mobileInput'),keys=document.getElementById('keys');let history=[],buffer='',loaded=null,ready=false;
@@ -34,7 +35,7 @@ function press(code){const el=document.querySelector(`[data-code="${code}"]`);if
 function execute(){const raw=buffer,cmd=raw.trim().toUpperCase();line(raw);buffer='';if(!cmd){line('READY.');return}if(cmd==='RUN'){if(!loaded){line('?FILE NOT FOUND ERROR');line('READY.');return}if(loaded==='ARCADE'){line('ARCADE DIRECTORY');line('COMING SOON.');line('READY.');return}line('BOOTING '+loaded+'...');draw();setTimeout(()=>location.assign(programs[loaded]),700);return}const official=cmd.match(/^LOAD\s+["']?([A-Z0-9]+)["']?(?:\s*,\s*8\s*,\s*1)?$/);const casual=cmd.match(/^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*,?\s*1)?$/);const name=official?official[1]:(casual?casual[1]:null);if(!name){line('?SYNTAX ERROR');line('READY.');return}if(!(name in programs)){line('?FILE NOT FOUND ERROR');line('READY.');return}loaded=name;line('SEARCHING FOR '+name);line('LOADING');line('READY.')}
 function keydown(e){press(e.code);if(!ready)return;if(e.key==='Enter'){e.preventDefault();execute()}else if(e.key==='Backspace'){e.preventDefault();buffer=buffer.slice(0,-1);draw()}else if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey){e.preventDefault();buffer+=e.key.toUpperCase();draw()}}
 document.addEventListener('keydown',keydown);crt.addEventListener('click',()=>mobile.focus());mobile.addEventListener('input',()=>{for(const c of mobile.value)if(c.length)buffer+=c.toUpperCase();mobile.value='';draw()});mobile.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();execute()}else if(e.key==='Backspace'&&!mobile.value){e.preventDefault();buffer=buffer.slice(0,-1);draw()}});
-const codes=['F1','F3','F5','F7','F2','F4','F6','F8','Escape','Digit1','Digit2','Digit3','Digit4','Digit5','Backspace','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Enter','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','Space','Space','Space','Space','Space','Space','Space','Space'];for(let r=0;r<4;r++){const row=document.createElement('div');row.className='key-row';for(let c=0;c<15;c++){const key=document.createElement('i');key.className='key';key.dataset.code=codes[r*15+c]||'';row.appendChild(key)}keys.appendChild(row)}
+const codes=['F1','F3','F5','F7','F2','F4','F6','F8','Escape','Digit1','Digit2','Digit3','Digit4','Digit5','Backspace','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Enter','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','Space','Space','Space','Space','Space','Space','Space'];for(let r=0;r<4;r++){const row=document.createElement('div');row.className='key-row';for(let c=0;c<15;c++){const key=document.createElement('i');key.className='key';key.dataset.code=codes[r*15+c]||'';row.appendChild(key)}keys.appendChild(row)}
 boot();
 </script>
 </body>

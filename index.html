@@ -44,11 +44,11 @@
     height: auto;
   }
 
-  /* Clean simulated CRT: covers the words baked into the source photo. */
+  /* Blank, simulated blue CRT screen hiding the original photo text. */
   .crt {
     position: absolute;
     overflow: hidden;
-    clip-path: polygon(3% 4%, 97% 4%, 91% 96%, 9% 96%);
+    clip-path: polygon(3% 5%, 97% 5%, 91% 95%, 9% 95%);
     border-radius: 18% / 12%;
     background:
       radial-gradient(ellipse at 46% 40%, #26467f 0%, #1b336a 48%, #101d46 78%, #070d25 100%);
@@ -128,7 +128,6 @@
     50% { opacity: .25; }
   }
 
-  /* A hidden real input opens iPhone's keyboard after tapping the CRT. */
   #mobileInput {
     position: fixed;
     left: -1000px;
@@ -139,7 +138,7 @@
     font-size: 16px;
   }
 
-  /* CSS keyboard: visible activity and tappable keys. */
+  /* Hybrid CSS keyboard; adjusted to lie inside the photographed keyboard body. */
   .kb-wrap {
     position: absolute;
     perspective: 900px;
@@ -152,7 +151,7 @@
     inset: 0;
     background: linear-gradient(165deg, var(--plate-hi) 0%, var(--plate) 55%, #6e5c3d 100%);
     border-radius: 6% / 14%;
-    transform: rotateX(22deg) rotateZ(-.6deg);
+    transform: rotateX(16deg) rotateZ(-.6deg) scaleY(.86);
     transform-origin: 50% 100%;
     box-shadow: inset 0 6px 14px rgba(0, 0, 0, .35), 0 10px 20px rgba(0, 0, 0, .4);
     padding: 5% 3%;
@@ -205,9 +204,9 @@
 <input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Commodore command input">
 
 <script>
-  /* Coordinates measured as fractions of c64-desk.jpg (1312 × 1199). */
-  const SCREEN_REGION = { left: .213, top: .171, width: .264, height: .220 };
-  const KB_REGION = { left: .0991, top: .4504, width: .5869, height: .1835 };
+  /* Adjusted from the latest portrait-phone screenshot. */
+  const SCREEN_REGION = { left: .222, top: .173, width: .247, height: .205 };
+  const KB_REGION = { left: .100, top: .494, width: .575, height: .145 };
 
   const photo = document.getElementById('photo');
   const crt = document.getElementById('crt');

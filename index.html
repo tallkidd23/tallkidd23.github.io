@@ -48,12 +48,8 @@
     position: absolute;
     overflow: hidden;
     border-radius: 7% / 10%;
-    background:
-      radial-gradient(ellipse at 48% 39%, #24477f 0%, #193466 54%, #10234e 78%, #080f28 100%);
-    box-shadow:
-      inset 0 0 12px 4px rgba(0, 0, 0, .48),
-      inset 0 0 42px rgba(0, 0, 0, .55),
-      0 0 5px rgba(53, 129, 255, .18);
+    background: radial-gradient(ellipse at 48% 39%, #24477f 0%, #193466 54%, #10234e 78%, #080f28 100%);
+    box-shadow: inset 0 0 12px 4px rgba(0, 0, 0, .48), inset 0 0 42px rgba(0, 0, 0, .55), 0 0 5px rgba(53, 129, 255, .18);
   }
 
   .crt::before {
@@ -61,15 +57,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, .025) 0,
-        rgba(255, 255, 255, .025) 1px,
-        rgba(0, 0, 0, .11) 2px,
-        rgba(0, 0, 0, .11) 3px
-      ),
-      radial-gradient(ellipse at 28% 13%, rgba(255, 255, 255, .10), transparent 32%);
+    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .025) 0, rgba(255, 255, 255, .025) 1px, rgba(0, 0, 0, .11) 2px, rgba(0, 0, 0, .11) 3px), radial-gradient(ellipse at 28% 13%, rgba(255, 255, 255, .10), transparent 32%);
     mix-blend-mode: screen;
     opacity: .72;
   }
@@ -99,17 +87,8 @@
 
   @keyframes blink { 50% { opacity: 0; } }
 
-  a.prog {
-    color: var(--c64-white);
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  a.prog:hover, a.prog:focus {
-    color: #17315f;
-    background: var(--c64-white);
-    outline: none;
-  }
+  a.prog { color: var(--c64-white); text-decoration: none; cursor: pointer; }
+  a.prog:hover, a.prog:focus { color: #17315f; background: var(--c64-white); outline: none; }
 
   .tap-hint {
     position: absolute;
@@ -133,24 +112,27 @@
     font-size: 16px;
   }
 
+  /*
+    Keyboard revision:
+    A low flat plate with a trapezoid crop makes the outline follow
+    the four real keyboard corners rather than look like a tilted card.
+  */
   .kb-wrap {
     position: absolute;
     pointer-events: auto;
-    perspective: 900px;
   }
 
   .kb-plate {
     position: absolute;
     inset: 0;
+    overflow: hidden;
     border-radius: 3% / 9%;
+    clip-path: polygon(7% 4%, 94% 0%, 100% 88%, 0% 100%);
     background: linear-gradient(180deg, var(--plate-hi), var(--plate) 54%, #765f42);
-    transform: perspective(700px) rotateX(28deg) rotateY(-8deg) rotateZ(-1.3deg) scaleY(.88);
+    transform: perspective(900px) rotateX(10deg) rotateZ(-1deg);
     transform-origin: 50% 100%;
-    box-shadow:
-      inset 0 5px 11px rgba(255, 255, 255, .18),
-      inset 0 -8px 12px rgba(0, 0, 0, .30),
-      0 7px 14px rgba(0, 0, 0, .35);
-    padding: 5% 4.4%;
+    box-shadow: inset 0 5px 11px rgba(255, 255, 255, .18), inset 0 -8px 12px rgba(0, 0, 0, .30), 0 7px 14px rgba(0, 0, 0, .35);
+    padding: 7% 6% 8%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -164,10 +146,7 @@
     min-width: 0;
     background: linear-gradient(180deg, var(--key-hi), var(--key-face));
     border-radius: 3px;
-    box-shadow:
-      0 2px 0 #121214,
-      0 3px 3px rgba(0, 0, 0, .55),
-      inset 0 1px 0 rgba(255, 255, 255, .08);
+    box-shadow: 0 2px 0 #121214, 0 3px 3px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .08);
     color: var(--key-label);
     font-size: clamp(4px, .70vw, 10px);
     display: flex;
@@ -192,21 +171,13 @@
 <body>
 <div class="scene" id="scene">
   <img id="photo" src="assets/c64-main-machine.jpg" alt="A Commodore 64 main machine on a retro desk">
-
-  <div class="crt" id="crt">
-    <div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div>
-  </div>
-
-  <div class="kb-wrap" id="kbWrap">
-    <div class="kb-plate" id="kbPlate"></div>
-  </div>
+  <div class="crt" id="crt"><div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div></div>
+  <div class="kb-wrap" id="kbWrap"><div class="kb-plate" id="kbPlate"></div></div>
 </div>
-
 <input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Commodore command input">
-
 <script>
   const SCREEN_REGION = { left: .285, top: .185, width: .295, height: .235 };
-  const KB_REGION = { left: .190, top: .475, width: .535, height: .165 };
+  const KB_REGION = { left: .185, top: .490, width: .545, height: .145 };
 
   const photo = document.getElementById('photo');
   const scene = document.getElementById('scene');
@@ -359,7 +330,6 @@
     out += command + '\n';
     command = '';
     render();
-
     const program = matchProgram(typed);
     if (/^LIST$/i.test(typed)) {
       out = '';
@@ -367,12 +337,10 @@
       render();
       return;
     }
-
     if (program) {
       await runProgram(program.file, program.href);
       return;
     }
-
     out += '?FILE NOT FOUND ERROR\nREADY.\n';
     render();
   }

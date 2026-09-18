@@ -5,40 +5,599 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070b">
 <title>Tallkidd — Commodore 64</title>
+
 <style>
-@font-face{font-family:C64Pro;src:url('https://raw.githubusercontent.com/tallkidd23/JesseOS/main/C64_Pro-STYLE.woff2') format('woff2');font-display:swap}
-@font-face{font-family:KrazyNights;src:url('assets/KRAZYNIGHTS.TTF') format('truetype');font-display:swap}
-:root{--blue:#416fb5;--bright:#5685cf;--glow:rgba(44,88,157,.42)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#05070b}body{min-height:100vh;display:grid;place-items:center;overflow-x:hidden}
-.scene{position:relative;width:min(100vw,1024px);aspect-ratio:1;background:url('assets/C64.PNG') center/contain no-repeat}
-.crt{position:absolute;left:43.225%;top:41.95%;width:25.7%;height:18.55%;padding:1.05% 1.15%;overflow:hidden;isolation:isolate;cursor:text;color:var(--blue);font-family:C64Pro,'Courier New',monospace;font-size:clamp(3px,.47vw,5px);line-height:1.19;white-space:pre-wrap;text-shadow:0 0 1px var(--glow);border-radius:9% 9% 11% 11%/7% 7% 9% 9%}
-.crt:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(13,39,98,.06) 0,rgba(13,39,98,.06) 1px,transparent 1px,transparent 3px)}
-.terminal{height:100%;display:flex;flex-direction:column;overflow:hidden}.output{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;white-space:pre-wrap}.output::-webkit-scrollbar{display:none}.command{flex:none;color:var(--bright);min-height:1.2em}.cursor{display:inline-block;width:.67em;height:1.03em;vertical-align:-.13em;background:var(--bright);animation:blink 1s steps(1,end) infinite}@keyframes blink{50%{opacity:0}}
-.mobile-input{position:absolute;opacity:0;width:1px;height:1px;left:0;top:0;border:0}
-.keys{position:absolute;left:30%;top:71.15%;width:39.7%;height:7.7%;display:grid;grid-template-rows:repeat(4,1fr);gap:4%;padding:.2% .5%;pointer-events:none}.key-row{display:grid;grid-template-columns:repeat(15,1fr);gap:1.8%}.key{border-radius:18%;transition:background .055s,transform .055s}.key.down{background:rgba(255,255,255,.38);box-shadow:inset 0 1px 3px rgba(0,0,0,.7);transform:translateY(1px)}
-.carved{position:absolute;left:18%;top:96.45%;width:64%;height:2.35%;color:rgba(47,27,14,.74);font-family:KrazyNights,Georgia,serif;font-size:clamp(8px,1.1vw,13px);font-weight:400;line-height:1;text-align:center;letter-spacing:.025em;transform:perspective(260px) rotateX(5deg) rotateZ(-.35deg);pointer-events:none;white-space:nowrap;filter:contrast(1.08)}
-.carved span{display:inline-block;position:relative;padding:.08em .36em .05em;text-shadow:-.55px -.5px 0 rgba(27,13,6,.48),.55px .6px 0 rgba(214,152,88,.29),0 1px 1px rgba(18,7,3,.24)}
-.carved span:after{content:'';position:absolute;left:4%;right:4%;bottom:-1px;height:1px;background:rgba(221,160,93,.18);box-shadow:0 -1px 1px rgba(22,9,4,.2);opacity:.7}
-@media(max-width:700px){body{place-items:start center}.scene{width:100vw;margin-top:5vh}.crt{font-size:clamp(3px,1.12vw,5px)}.carved{top:96.45%;font-size:clamp(6px,2.05vw,10px)}.keys{display:none}}
+@font-face {
+  font-family: C64Pro;
+  src: url("https://raw.githubusercontent.com/tallkidd23/JesseOS/main/C64_Pro-STYLE.woff2")
+       format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: KrazyNights;
+  src: url("assets/KRAZYNIGHTS.TTF") format("truetype");
+  font-display: swap;
+}
+
+:root {
+  --blue: #416fb5;
+  --bright: #5685cf;
+  --glow: rgba(44, 88, 157, 0.42);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #05070b;
+}
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow-x: hidden;
+}
+
+.scene {
+  position: relative;
+  width: min(100vw, 1024px);
+  aspect-ratio: 1;
+  background: url("assets/C64.PNG") center / contain no-repeat;
+}
+
+/*
+  CRT overlay:
+  Expanded 1.5% farther left to fill more of the
+  visible blue monitor screen.
+*/
+.crt {
+  position: absolute;
+  left: 41.725%;
+  top: 41.95%;
+  width: 27.2%;
+  height: 18.55%;
+  padding: 1.05% 1.15%;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: text;
+  color: var(--blue);
+  font-family: C64Pro, "Courier New", monospace;
+  font-size: clamp(3px, 0.47vw, 5px);
+  line-height: 1.19;
+  white-space: pre-wrap;
+  text-shadow: 0 0 1px var(--glow);
+  border-radius: 9% 9% 11% 11% / 7% 7% 9% 9%;
+}
+
+.crt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(13, 39, 98, 0.06) 0,
+    rgba(13, 39, 98, 0.06) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.terminal {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.output {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  white-space: pre-wrap;
+}
+
+.output::-webkit-scrollbar {
+  display: none;
+}
+
+.command {
+  flex: none;
+  color: var(--bright);
+  min-height: 1.2em;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.67em;
+  height: 1.03em;
+  vertical-align: -0.13em;
+  background: var(--bright);
+  animation: blink 1s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Tappable project shortcuts directly inside the CRT */
+.quick-loads {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 2%;
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.quick-loads button {
+  border: 0;
+  background: transparent;
+  color: var(--bright);
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/*
+  Invisible input lets iPhone's keyboard type into
+  the simulated C64 prompt after tapping the blue CRT.
+*/
+.mobile-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  left: 0;
+  top: 0;
+  border: 0;
+}
+
+/* Desktop keyboard press overlay */
+.keys {
+  position: absolute;
+  left: 30%;
+  top: 71.15%;
+  width: 39.7%;
+  height: 7.7%;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 4%;
+  padding: 0.2% 0.5%;
+  pointer-events: none;
+}
+
+.key-row {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 1.8%;
+}
+
+.key {
+  border-radius: 18%;
+  transition: background 0.055s, transform 0.055s;
+}
+
+.key.down {
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+  transform: translateY(1px);
+}
+
+/*
+  Knife-carved desk instructions:
+  Krazynights is doubled in height, with a restrained
+  recessed groove and a small exposed-wood highlight.
+*/
+.carved {
+  position: absolute;
+  left: 18%;
+  top: 96.45%;
+  width: 64%;
+  height: 3.3%;
+  color: rgba(43, 24, 12, 0.82);
+  font-family: KrazyNights, Georgia, serif;
+  font-size: clamp(16px, 2.2vw, 26px);
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: 0.025em;
+  transform: perspective(260px) rotateX(5deg) rotateZ(-0.35deg);
+  pointer-events: none;
+  white-space: nowrap;
+  filter: contrast(1.1);
+}
+
+.carved span {
+  display: inline-block;
+  position: relative;
+  padding: 0.08em 0.36em 0.05em;
+  text-shadow:
+    -0.8px -0.7px 0 rgba(22, 10, 5, 0.6),
+    0.75px 0.8px 0 rgba(218, 157, 91, 0.4),
+    0 1.5px 1.5px rgba(18, 7, 3, 0.32);
+}
+
+.carved span::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -1px;
+  height: 1px;
+  background: rgba(226, 164, 96, 0.25);
+  box-shadow: 0 -1px 1px rgba(22, 9, 4, 0.28);
+  opacity: 0.78;
+}
+
+@media (max-width: 700px) {
+  body {
+    place-items: start center;
+  }
+
+  .scene {
+    width: 100vw;
+    margin-top: 5vh;
+  }
+
+  .crt {
+    font-size: clamp(3px, 1.12vw, 5px);
+  }
+
+  .carved {
+    top: 96.45%;
+    font-size: clamp(12px, 4.05vw, 20px);
+  }
+
+  .keys {
+    display: none;
+  }
+}
 </style>
 </head>
+
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
-<section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0"><div class="terminal"><div class="output" id="output"></div><div class="command"><span id="command"></span><span class="cursor" aria-hidden="true"></span></div></div><input id="mobileInput" class="mobile-input" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="C64 command input"></section>
-<div class="keys" id="keys" aria-hidden="true"></div>
-<div class="carved" aria-hidden="true"><span>TAP SCREEN · LOAD "NAME",8,1 · RUN</span></div>
+
+  <section
+    class="crt"
+    id="crt"
+    aria-label="Commodore 64 terminal"
+    tabindex="0"
+  >
+    <div class="terminal">
+      <div class="output" id="output"></div>
+
+      <div class="command">
+        <span id="command"></span>
+        <span class="cursor" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div class="quick-loads" aria-label="Project shortcuts">
+      <button data-load="PAREIDOLIA">PAREIDOLIA</button>
+      <button data-load="JESSEOS">JESSEOS</button>
+      <button data-load="CCTV">CCTV</button>
+      <button data-load="ARCADE">ARCADE</button>
+    </div>
+
+    <input
+      id="mobileInput"
+      class="mobile-input"
+      autocomplete="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      inputmode="text"
+      enterkeyhint="done"
+      aria-label="C64 command input"
+    >
+  </section>
+
+  <div class="keys" id="keys" aria-hidden="true"></div>
+
+  <div class="carved" aria-hidden="true">
+    <span>TAP SCREEN · LOAD "NAME",8,1 · RUN</span>
+  </div>
 </main>
+
 <script>
-const programs={PAREIDOLIA:'https://pareidolia.tallkidd.com',JESSEOS:'https://jesseos.tallkidd.com',CCTV:'https://cctv.tallkidd.com',ARCADE:null};
-const crt=document.getElementById('crt'),out=document.getElementById('output'),command=document.getElementById('command'),mobile=document.getElementById('mobileInput'),keys=document.getElementById('keys');let buffer='',loaded=null,ready=false;
-function scrollLog(){out.scrollTop=out.scrollHeight}function draw(){command.textContent=ready?buffer:'';requestAnimationFrame(scrollLog)}function line(text=''){out.textContent+=(out.textContent?'\n':'')+text;draw()}
-function directory(){line('0 "TALLKIDD DISK" 00 2A');line('10 "PAREIDOLIA" PRG');line('20 "JESSEOS" PRG');line('30 "CCTV" PRG');line('40 "ARCADE" DIR');line('38911 BLOCKS FREE.')}
-function boot(){const intro=['','**** COMMODORE 64 BASIC V2 ****','','64K RAM SYSTEM 38911 BASIC BYTES FREE','','READY.','TYPE DIR OR LOAD "NAME",8,1',''];let n=0;const next=()=>{if(n<intro.length){line(intro[n++]);setTimeout(next,175)}else{ready=true;directory();line('READY.');draw()}};next()}
-function press(code){const el=document.querySelector(`[data-code="${code}"]`);if(!el)return;el.classList.add('down');setTimeout(()=>el.classList.remove('down'),100)}
-function execute(){const raw=buffer,cmd=raw.trim().toUpperCase();line(raw);buffer='';if(!cmd){line('READY.');return}if(cmd==='DIR'||cmd==='DIRECTORY'){directory();line('READY.');return}if(cmd==='RUN'){if(!loaded){line('?FILE NOT FOUND ERROR');line('READY.');return}if(loaded==='ARCADE'){line('ARCADE DIRECTORY');line('COMING SOON.');line('READY.');return}line('BOOTING '+loaded+'...');draw();setTimeout(()=>location.assign(programs[loaded]),700);return}const official=cmd.match(/^LOAD\s+["']?([A-Z0-9]+)["']?(?:\s*,\s*8\s*,\s*1)?$/);const casual=cmd.match(/^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*,?\s*1)?$/);const name=official?official[1]:(casual?casual[1]:(cmd in programs?cmd:null));if(!name){line('?SYNTAX ERROR');line('READY.');return}if(!(name in programs)){line('?FILE NOT FOUND ERROR');line('READY.');return}loaded=name;line('SEARCHING FOR '+name);line('LOADING');line('READY.')}
-function keydown(e){press(e.code);if(!ready)return;if(e.key==='Enter'){e.preventDefault();execute()}else if(e.key==='Backspace'){e.preventDefault();buffer=buffer.slice(0,-1);draw()}else if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey){e.preventDefault();buffer+=e.key.toUpperCase();draw()}}
-document.addEventListener('keydown',keydown);crt.addEventListener('click',()=>mobile.focus());mobile.addEventListener('input',()=>{for(const c of mobile.value)buffer+=c.toUpperCase();mobile.value='';draw()});mobile.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();execute()}else if(e.key==='Backspace'&&!mobile.value){e.preventDefault();buffer=buffer.slice(0,-1);draw()}});
-const codes=['F1','F3','F5','F7','F2','F4','F6','F8','Escape','Digit1','Digit2','Digit3','Digit4','Digit5','Backspace','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Enter','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','Space','Space','Space','Space','Space','Space'];for(let r=0;r<4;r++){const row=document.createElement('div');row.className='key-row';for(let c=0;c<15;c++){const key=document.createElement('i');key.className='key';key.dataset.code=codes[r*15+c]||'';row.appendChild(key)}keys.appendChild(row)}
+const programs = {
+  PAREIDOLIA: "https://pareidolia.tallkidd.com",
+  JESSEOS: "https://jesseos.tallkidd.com",
+  CCTV: "https://cctv.tallkidd.com",
+  ARCADE: null
+};
+
+const crt = document.getElementById("crt");
+const out = document.getElementById("output");
+const command = document.getElementById("command");
+const mobile = document.getElementById("mobileInput");
+const keys = document.getElementById("keys");
+
+let buffer = "";
+let loaded = null;
+let ready = false;
+let ignoreMobileEnterUntil = 0;
+
+function scrollLog() {
+  out.scrollTop = out.scrollHeight;
+}
+
+function draw() {
+  command.textContent = ready ? buffer : "";
+  requestAnimationFrame(scrollLog);
+}
+
+function line(text = "") {
+  out.textContent += (out.textContent ? "\n" : "") + text;
+  draw();
+}
+
+function directory() {
+  line('0 "TALLKIDD DISK" 00 2A');
+  line('10 "PAREIDOLIA" PRG');
+  line('20 "JESSEOS" PRG');
+  line('30 "CCTV" PRG');
+  line('40 "ARCADE" DIR');
+  line("38911 BLOCKS FREE.");
+}
+
+function boot() {
+  const intro = [
+    "",
+    "**** COMMODORE 64 BASIC V2 ****",
+    "",
+    "64K RAM SYSTEM 38911 BASIC BYTES FREE",
+    "",
+    "READY.",
+    'TYPE DIR OR LOAD "NAME",8,1',
+    ""
+  ];
+
+  let n = 0;
+
+  const next = () => {
+    if (n < intro.length) {
+      line(intro[n++]);
+      setTimeout(next, 175);
+    } else {
+      ready = true;
+      directory();
+      line("READY.");
+      draw();
+    }
+  };
+
+  next();
+}
+
+function press(code) {
+  const key = document.querySelector(`[data-code="${code}"]`);
+  if (!key) return;
+
+  key.classList.add("down");
+
+  setTimeout(() => {
+    key.classList.remove("down");
+  }, 100);
+}
+
+function loadProgram(name) {
+  if (!(name in programs)) {
+    line("?FILE NOT FOUND ERROR");
+    line("READY.");
+    return;
+  }
+
+  loaded = name;
+  line("SEARCHING FOR " + name);
+  line("LOADING");
+  line("READY.");
+}
+
+function execute() {
+  if (!ready) return;
+
+  const raw = buffer;
+  const cmd = raw.trim().toUpperCase();
+
+  line(raw);
+  buffer = "";
+
+  if (!cmd) {
+    line("READY.");
+    return;
+  }
+
+  if (cmd === "DIR" || cmd === "DIRECTORY") {
+    directory();
+    line("READY.");
+    return;
+  }
+
+  if (cmd === "RUN") {
+    if (!loaded) {
+      line("?FILE NOT FOUND ERROR");
+      line("READY.");
+      return;
+    }
+
+    if (loaded === "ARCADE") {
+      line("ARCADE DIRECTORY");
+      line("COMING SOON.");
+      line("READY.");
+      return;
+    }
+
+    line("BOOTING " + loaded + "...");
+    draw();
+
+    setTimeout(() => {
+      location.assign(programs[loaded]);
+    }, 700);
+
+    return;
+  }
+
+  /*
+    Supported styles:
+
+    LOAD "JESSEOS",8,1
+    LOAD JESSEOS,8,1
+    JESSEOS LOAD,8,1
+    JESSEOS
+  */
+  const official = cmd.match(
+    /^LOAD\s+["']?([A-Z0-9]+)["']?\s*(?:,\s*8\s*(?:,\s*1)?)?$/
+  );
+
+  const casual = cmd.match(
+    /^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*(?:,\s*1)?)?$/
+  );
+
+  const name = official
+    ? official[1]
+    : casual
+      ? casual[1]
+      : (cmd in programs ? cmd : null);
+
+  if (!name) {
+    line("?SYNTAX ERROR");
+    line("READY.");
+    return;
+  }
+
+  loadProgram(name);
+}
+
+function addCharacters(text) {
+  for (const char of text) {
+    if (char && char !== "\n" && char !== "\r") {
+      buffer += char.toUpperCase();
+    }
+  }
+
+  draw();
+}
+
+function desktopKeydown(event) {
+  press(event.code);
+
+  if (!ready) return;
+  if (event.target === mobile) return;
+
+  if (event.key === "Enter") {
+    event.preventDefault();
+    ignoreMobileEnterUntil = Date.now() + 150;
+    execute();
+    return;
+  }
+
+  if (event.key === "Backspace") {
+    event.preventDefault();
+    buffer = buffer.slice(0, -1);
+    draw();
+    return;
+  }
+
+  if (
+    event.key.length === 1 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey
+  ) {
+    event.preventDefault();
+    addCharacters(event.key);
+  }
+}
+
+document.addEventListener("keydown", desktopKeydown);
+
+crt.addEventListener("click", () => {
+  mobile.focus();
+});
+
+mobile.addEventListener("beforeinput", (event) => {
+  if (!ready) return;
+
+  if (event.inputType === "deleteContentBackward") {
+    event.preventDefault();
+    buffer = buffer.slice(0, -1);
+    draw();
+  }
+});
+
+mobile.addEventListener("input", () => {
+  if (mobile.value) {
+    addCharacters(mobile.value);
+    mobile.value = "";
+  }
+});
+
+mobile.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+
+    if (Date.now() > ignoreMobileEnterUntil) {
+      execute();
+    }
+  }
+});
+
+document.querySelectorAll("[data-load]").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    loadProgram(button.dataset.load);
+    mobile.focus();
+  });
+});
+
+const codes = [
+  "F1", "F3", "F5", "F7", "F2",
+  "F4", "F6", "F8", "Escape", "Digit1",
+  "Digit2", "Digit3", "Digit4", "Digit5", "Backspace",
+
+  "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT",
+  "KeyY", "KeyU", "KeyI", "KeyO", "KeyP",
+  "BracketLeft", "BracketRight", "Enter", "KeyA", "KeyS",
+
+  "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
+  "KeyK", "KeyL", "Semicolon", "Quote", "ShiftLeft",
+  "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB",
+
+  "KeyN", "KeyM", "Comma", "Period", "Slash",
+  "ShiftRight", "Space", "Space", "Space", "Space",
+  "Space", "Space"
+];
+
+for (let rowNumber = 0; rowNumber < 4; rowNumber++) {
+  const row = document.createElement("div");
+  row.className = "key-row";
+
+  for (let column = 0; column < 15; column++) {
+    const key = document.createElement("i");
+    key.className = "key";
+    key.dataset.code = codes[rowNumber * 15 + column] || "";
+    row.appendChild(key);
+  }
+
+  keys.appendChild(row);
+}
+
 boot();
 </script>
 </body>

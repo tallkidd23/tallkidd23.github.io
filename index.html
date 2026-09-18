@@ -1,40 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tallkidd C64 Desk</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root { --screen-text: #a8c8ff; --screen-text-dim: #7898c8; --key-active: rgba(255,255,255,.22); }
-    body { margin:0; background:#000; display:grid; place-items:center; min-height:100vh; font-family:"Courier New",monospace; }
-    .desk-scene { position:relative; width:min(95vw,1200px); aspect-ratio:1; background:url("c64-desk-scene-v6.png") center/cover no-repeat; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.8); user-select:none; }
-    .c64-screen-overlay { position:absolute; left:28%; top:28%; width:18%; height:13%; color:var(--screen-text); text-shadow:0 0 4px rgba(168,200,255,.6); padding:1.2% 1.5%; font-size:clamp(10px,1.35vw,15px); line-height:1.35; white-space:pre-wrap; word-break:break-word; overflow:hidden; cursor:text; }
-    .c64-keyboard-overlay { position:absolute; left:22%; top:58%; width:56%; height:22%; display:grid; grid-template-rows:repeat(4,1fr); gap:1.5%; padding:1.5%; pointer-events:none; }
-    .key-row { display:grid; grid-template-columns:repeat(15,1fr); gap:1.5%; }
-    .key { border-radius:4%; background:transparent; transition:background 60ms ease; }
-    .key.pressed { background:var(--key-active); }
-    @media (max-width:700px) { .c64-keyboard-overlay { display:none; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070b">
+<title>Tallkidd — C64</title>
+<style>
+:root { --c64-blue:#a9ceff; --c64-dim:#7ea5d7; }
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; background:#05070b; }
+body { min-height:100vh; display:grid; place-items:center; font-family:"Courier New",monospace; overflow-x:hidden; }
+.scene { position:relative; width:min(100vw,1000px); aspect-ratio:1/1; background:url("assets/C64.PNG") center/contain no-repeat; }
+.screen { position:absolute; left:38.55%; top:42.45%; width:24.05%; height:18.1%; padding:1.45% 1.35%; overflow:hidden; color:var(--c64-blue); font-size:clamp(7px,1.18vw,12px); line-height:1.28; letter-spacing:.01em; text-shadow:0 0 3px rgba(169,206,255,.5); white-space:pre-wrap; cursor:text; }
+.output { min-height:100%; }
+.command { color:#d5e8ff; }
+.cursor { display:inline-block; width:.62em; height:1.08em; vertical-align:-.15em; background:var(--c64-blue); animation:blink 1s steps(1,end) infinite; }
+@keyframes blink { 50% { opacity:0; } }
+.touch-input { position:absolute; opacity:0; width:1px; height:1px; border:0; left:0; top:0; }
+.menu { position:absolute; left:38.55%; top:60.7%; width:24.05%; display:flex; justify-content:space-between; gap:2px; font-size:clamp(5px,.75vw,8px); color:var(--c64-blue); }
+.menu button { appearance:none; border:0; background:transparent; padding:0; color:inherit; font:inherit; font-weight:bold; text-decoration:underline; cursor:pointer; }
+.keys { position:absolute; left:28.4%; top:70.35%; width:47.3%; height:10.7%; display:grid; grid-template-rows:repeat(4,1fr); gap:3%; padding:.5% 1%; pointer-events:none; }
+.key-row { display:grid; grid-template-columns:repeat(15,1fr); gap:1.25%; }
+.key { border-radius:12%; transition:background .06s ease, transform .06s ease; }
+.key.down { background:rgba(255,255,255,.38); box-shadow:inset 0 1px 4px rgba(0,0,0,.65); transform:translateY(1px); }
+.hint { position:fixed; left:50%; bottom:calc(8px + env(safe-area-inset-bottom)); transform:translateX(-50%); color:#aac4df; font:12px/1.25 "Courier New",monospace; text-align:center; opacity:.8; }
+@media (max-width:700px) { body { place-items:start center; } .scene { width:100vw; margin-top:7vh; } .screen { font-size:clamp(7px,2.85vw,12px); } .menu { font-size:clamp(5px,1.8vw,8px); } .hint { font-size:10px; } }
+</style>
 </head>
 <body>
-  <main class="desk-scene" aria-label="Tallkidd Commodore 64 desk">
-    <div class="c64-screen-overlay" id="screenOverlay" role="status" aria-live="polite"></div>
-    <div class="c64-keyboard-overlay" id="keyboardOverlay" aria-hidden="true"></div>
-  </main>
-  <script>
-    const screenOverlay=document.getElementById("screenOverlay");
-    const keyboardOverlay=document.getElementById("keyboardOverlay");
-    const PROJECTS={PAREIDOLIA:"https://pareidolia.tallkidd.com",JESSEOS:"https://jesseos.tallkidd.com",CCTV:"https://cctv.tallkidd.com",ARCADE:"#"};
-    const bootLines=["","**** COMMODORE 64 BASIC V2 ****","","64K RAM SYSTEM 38911 BASIC BYTES FREE","","READY."];
-    let bootIndex=0,screenContent="",inputBuffer="",lastLoaded=null,ready=false;
-    function render(){screenOverlay.textContent=screenContent+(ready?inputBuffer+"█":"");}
-    function boot(){if(bootIndex>=bootLines.length){ready=true;screenContent+='\nTYPE A PROJECT NAME OR LOAD "NAME",8,1 THEN RUN.\nPAREIDOLIA  JESSEOS  CCTV  ARCADE\n\nREADY.\n';render();return;}screenContent+=bootLines[bootIndex++]+"\n";render();setTimeout(boot,220);}
-    function command(){const raw=inputBuffer,cmd=raw.trim().toUpperCase();screenContent+=raw+"\n";inputBuffer="";if(!cmd){screenContent+="READY.\n";}else if(cmd==="RUN"){if(!lastLoaded)screenContent+="?FILE NOT FOUND ERROR\nREADY.\n";else if(lastLoaded==="ARCADE")screenContent+="ARCADE DIRECTORY -- COMING SOON\nREADY.\n";else{screenContent+=`BOOTING ${lastLoaded}...\n`;render();setTimeout(()=>location.href=PROJECTS[lastLoaded],800);return;}}else{const m=cmd.match(/^LOAD\s+["']?([A-Z0-9]+)["']?(?:\s*,\s*8\s*,\s*1)?$/);const name=m?m[1]:(Object.prototype.hasOwnProperty.call(PROJECTS,cmd)?cmd:null);if(!name)screenContent+="?SYNTAX ERROR\nREADY.\n";else if(!PROJECTS[name])screenContent+="?FILE NOT FOUND ERROR\nREADY.\n";else{lastLoaded=name;screenContent+="SEARCHING\nLOADING\nREADY.\n";}}render();}
-    const keyMap=new Map();for(let r=0;r<4;r++){const row=document.createElement("div");row.className="key-row";for(let c=0;c<15;c++){const key=document.createElement("div");key.className="key";row.appendChild(key);}keyboardOverlay.appendChild(row);}const codes=["F1","F3","F5","F7","F2","F4","F6","F8","","Digit1","KeyQ","KeyA","KeyZ","ShiftLeft","ShiftRight","Digit3","KeyW","KeyS","KeyX","Digit4","KeyE","KeyD","KeyC","Digit5","KeyR","KeyF","KeyV","Digit6","KeyT","KeyG","KeyB","KeyY","KeyH","KeyN","Digit7","KeyU","KeyJ","KeyM","Digit8","KeyI","KeyK","Comma","Digit9","KeyO","KeyL","Period","Digit0","KeyP","Slash","Minus","Equal","Backquote","BracketLeft","BracketRight","Backslash","Semicolon","Quote","Enter","Space","Backspace"];Array.from(keyboardOverlay.querySelectorAll(".key")).forEach((el,i)=>{if(codes[i])keyMap.set(codes[i],el);});
-    function press(code){const el=keyMap.get(code);if(!el)return;el.classList.add("pressed");setTimeout(()=>el.classList.remove("pressed"),120);}
-    document.addEventListener("keydown",e=>{press(e.code);if(!ready)return;if(e.key==="Enter"){e.preventDefault();command();}else if(e.key==="Backspace"){e.preventDefault();inputBuffer=inputBuffer.slice(0,-1);render();}else if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){inputBuffer+=e.key.toUpperCase();render();}});
-    screenOverlay.addEventListener("click",()=>{if(!ready)return;const text=prompt("LOAD PROGRAM: PAREIDOLIA, JESSEOS, CCTV, OR ARCADE");if(!text)return;inputBuffer=text;command();if(lastLoaded&&lastLoaded!=="ARCADE")setTimeout(()=>location.href=PROJECTS[lastLoaded],250);});
-    setTimeout(boot,400);
-  </script>
+<main class="scene" id="scene" aria-label="Interactive Commodore 64 desk">
+  <section class="screen" id="screen" aria-label="Commodore terminal" tabindex="0">
+    <div class="output" id="output"></div>
+    <span class="command" id="command"></span><span class="cursor"></span>
+    <input id="touchInput" class="touch-input" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" aria-label="C64 command input">
+  </section>
+  <nav class="menu" aria-label="Project shortcuts">
+    <button data-program="PAREIDOLIA">PAREIDOLIA</button><button data-program="JESSEOS">JESSEOS</button><button data-program="CCTV">CCTV</button><button data-program="ARCADE">ARCADE</button>
+  </nav>
+  <div class="keys" id="keys" aria-hidden="true"></div>
+</main>
+<div class="hint">Tap the blue C64 screen to type · LOAD "NAME",8,1 → RUN</div>
+<script>
+const PROGRAMS={PAREIDOLIA:'https://pareidolia.tallkidd.com',JESSEOS:'https://jesseos.tallkidd.com',CCTV:'https://cctv.tallkidd.com',ARCADE:null};
+const output=document.getElementById('output'), commandEl=document.getElementById('command'), screen=document.getElementById('screen'), touchInput=document.getElementById('touchInput'), keys=document.getElementById('keys');
+let buffer='',loaded=null,ready=false,lines=[];
+function draw(){ output.textContent=lines.join('\n'); commandEl.textContent=ready ? buffer : ''; }
+function print(text=''){ lines.push(text); if(lines.length>11) lines=lines.slice(-11); draw(); }
+function boot(){ const seq=['','**** COMMODORE 64 BASIC V2 ****','','64K RAM SYSTEM 38911 BASIC BYTES FREE','','READY.','TYPE: LOAD "NAME",8,1','THEN TYPE: RUN','']; let i=0; const tick=()=>{ if(i<seq.length){print(seq[i++]);setTimeout(tick,170);}else{ready=true;draw();}}; tick(); }
+function activate(code){ const key=document.querySelector(`[data-code="${code}"]`); if(!key)return; key.classList.add('down'); setTimeout(()=>key.classList.remove('down'),105); }
+function submit(){ const raw=buffer,cmd=raw.trim().toUpperCase(); print(raw); buffer=''; if(!cmd){ print('READY.'); return; } if(cmd==='RUN'){ if(!loaded){print('?FILE NOT FOUND ERROR');print('READY.');return;} if(loaded==='ARCADE'){print('ARCADE DIRECTORY');print('COMING SOON.');print('READY.');return;} print('BOOTING '+loaded+'...');draw();setTimeout(()=>location.assign(PROGRAMS[loaded]),700);return; } const match=cmd.match(/^LOAD\s+["']?([A-Z0-9]+)["']?(?:\s*,\s*8\s*,\s*1)?$/); const short=cmd.match(/^([A-Z0-9]+)(?:\s+LOAD\s*,?\s*8\s*,?\s*1)?$/); const name=match?match[1]:(short?short[1]:null); if(!name || !(name in PROGRAMS)){ print(name?'?FILE NOT FOUND ERROR':'?SYNTAX ERROR');print('READY.');return; } loaded=name; print('SEARCHING FOR '+name); print('LOADING'); print('READY.'); }
+function addChar(char){ if(!ready)return; buffer+=char.toUpperCase(); draw(); }
+function handleKey(e){ activate(e.code); if(!ready)return; if(e.key==='Enter'){e.preventDefault();submit();return;} if(e.key==='Backspace'){e.preventDefault();buffer=buffer.slice(0,-1);draw();return;} if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey){e.preventDefault();addChar(e.key);} }
+document.addEventListener('keydown',handleKey);
+screen.addEventListener('click',()=>touchInput.focus());
+touchInput.addEventListener('input',()=>{ const typed=touchInput.value; if(typed){ for(const char of typed)addChar(char); touchInput.value=''; } });
+touchInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();submit();} if(e.key==='Backspace'&&!touchInput.value){e.preventDefault();buffer=buffer.slice(0,-1);draw();} });
+document.querySelectorAll('[data-program]').forEach(button=>button.addEventListener('click',()=>{ const name=button.dataset.program; if(name==='ARCADE'){loaded='ARCADE';print('ARCADE DIRECTORY');print('COMING SOON.');print('READY.');return;} loaded=name;print('LOADING '+name+'...');draw();setTimeout(()=>location.assign(PROGRAMS[name]),500); }));
+const codes=['F1','F3','F5','F7','F2','F4','F6','F8','Escape','Digit1','Digit2','Digit3','Digit4','Digit5','Backspace','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Enter','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','Space','Space','Space','Space','Space','Space','Space','Space'];
+for(let r=0;r<4;r++){const row=document.createElement('div');row.className='key-row';for(let c=0;c<15;c++){const k=document.createElement('i');k.className='key';k.dataset.code=codes[r*15+c]||'';row.appendChild(k);}keys.appendChild(row);}
+boot();
+</script>
 </body>
 </html>

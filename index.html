@@ -7,86 +7,82 @@
 <title>tallkidd.com — Main Machine</title>
 <style>
   :root {
-    --blue: #8fdcff;
-    --blue-hi: #effcff;
-    --blue-shadow: #285fa9;
-    --beige-1: #d4bd96;
-    --beige-2: #aa8a61;
-    --key-top: #3b3633;
-    --key-bottom: #171515;
+    --screen-blue: #8fdcff;
+    --screen-white: #effcff;
+    --screen-shadow: #285fa9;
   }
 
   * { box-sizing: border-box; }
-
   html, body { margin: 0; min-height: 100%; background: #050505; }
+  body { overflow: hidden; font-family: "Courier New", Courier, monospace; }
 
-  body {
-    color: var(--blue);
-    font-family: "Courier New", Courier, monospace;
-    overflow-x: hidden;
-  }
-
-  .machine {
-    width: min(100%, 1600px);
-    margin: 0 auto;
-    padding: clamp(10px, 2vw, 30px);
-  }
-
-  .monitor-stage {
+  .scene {
     position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    min-height: 330px;
+    min-height: 100svh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    border-radius: clamp(8px, 1.2vw, 18px);
-    background:
-      radial-gradient(ellipse at 50% 36%, #253e76 0%, #142a59 35%, #0c1b3d 68%, #050b1d 100%);
-    box-shadow: 0 18px 55px rgba(0, 0, 0, .62), inset 0 0 65px rgba(0, 0, 0, .72);
+    background: #050505;
   }
 
-  .monitor-stage::before {
+  #deskPhoto {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100svh;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* All overlay positions are expressed as fractions of the displayed desk photo. */
+  .overlay {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .crt {
+    overflow: hidden;
+    border-radius: 8% / 12%;
+    background: radial-gradient(ellipse at 49% 37%, #2b548e 0%, #1e4178 44%, #122858 76%, #080f27 100%);
+    box-shadow: inset 0 0 13px 4px rgba(0,0,0,.50), inset 0 0 48px rgba(0,0,0,.55), 0 0 10px rgba(48,121,255,.24);
+  }
+
+  .crt::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 4;
+    z-index: 3;
     background:
-      repeating-linear-gradient(to bottom, rgba(255,255,255,.025) 0 1px, rgba(0,0,0,.15) 2px 4px),
-      radial-gradient(ellipse at 30% 7%, rgba(255,255,255,.16), transparent 36%),
-      radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.48) 100%);
+      repeating-linear-gradient(to bottom, rgba(255,255,255,.035) 0 1px, rgba(0,0,0,.13) 2px 4px),
+      radial-gradient(ellipse at 28% 12%, rgba(255,255,255,.13), transparent 34%),
+      radial-gradient(ellipse at 50% 50%, transparent 57%, rgba(0,0,0,.42) 100%);
     mix-blend-mode: screen;
-    opacity: .8;
-  }
-
-  .monitor-stage::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-    box-shadow: inset 0 0 22px 4px rgba(0,0,0,.75), inset 0 0 115px rgba(0,0,0,.56);
   }
 
   .terminal {
-    position: relative;
+    position: absolute;
+    inset: 0;
     z-index: 2;
-    height: 100%;
-    padding: clamp(20px, 5vw, 74px) clamp(22px, 7vw, 116px);
     overflow: auto;
-    font-size: clamp(11px, 1.45vw, 23px);
+    padding: 5.2% 6.4%;
+    color: var(--screen-blue);
+    font-size: clamp(7px, 1.35vw, 17px);
     line-height: 1.38;
     letter-spacing: .015em;
-    color: var(--blue);
-    text-shadow: 0 0 3px var(--blue-hi), 0 0 7px var(--blue-shadow);
     white-space: pre-wrap;
-    cursor: text;
+    text-shadow: 0 0 3px var(--screen-white), 0 0 7px var(--screen-shadow);
     scrollbar-width: none;
+    cursor: text;
   }
 
   .terminal::-webkit-scrollbar { display: none; }
-
-  .terminal a { color: var(--blue-hi); text-decoration: none; }
-  .terminal a:hover, .terminal a:focus { color: #17325e; background: var(--blue-hi); outline: none; }
+  .terminal a { color: var(--screen-white); text-decoration: none; }
+  .terminal a:hover, .terminal a:focus { color: #17325e; background: var(--screen-white); outline: none; }
 
   .cursor {
     display: inline-block;
@@ -94,113 +90,91 @@
     height: 1.03em;
     margin-left: .05em;
     vertical-align: -.16em;
-    background: var(--blue-hi);
+    background: var(--screen-white);
     animation: blink 1s steps(1) infinite;
   }
 
   @keyframes blink { 50% { opacity: 0; } }
 
-  .screen-note {
-    position: absolute;
-    z-index: 3;
-    right: clamp(16px, 4vw, 60px);
-    top: clamp(18px, 4vw, 50px);
-    width: clamp(135px, 17vw, 245px);
-    padding: clamp(9px, 1.2vw, 18px);
-    transform: rotate(3deg);
-    color: #1f3751;
+  .postit {
+    z-index: 4;
+    padding: 7% 8%;
+    color: #1e3550;
     background: #ffe96e;
     font-family: "Comic Sans MS", "Bradley Hand", cursive;
-    font-size: clamp(9px, 1.05vw, 16px);
+    font-size: clamp(6px, .95vw, 14px);
     line-height: 1.38;
     white-space: pre-line;
-    box-shadow: 3px 5px 9px rgba(0,0,0,.35), inset 0 0 8px rgba(157,124,0,.14);
-    filter: saturate(.95);
+    transform: rotate(3deg);
+    box-shadow: 2px 4px 7px rgba(0,0,0,.36), inset 0 0 8px rgba(157,124,0,.15);
+    filter: saturate(.96);
+    pointer-events: none;
   }
 
-  .screen-note::before {
+  .postit::before {
     content: "";
     position: absolute;
-    height: 12%;
-    left: 0;
-    right: 0;
-    top: 0;
-    background: rgba(255,255,255,.15);
+    height: 13%;
+    inset: 0 0 auto;
+    background: rgba(255,255,255,.16);
   }
 
-  .keyboard-shell {
-    position: relative;
-    width: min(96vw, 1320px);
-    margin: clamp(12px, 2.5vw, 34px) auto 0;
-    padding: clamp(28px, 4.2vw, 62px) clamp(18px, 4vw, 64px) clamp(22px, 3.5vw, 50px);
-    border: clamp(5px, .8vw, 12px) solid #856747;
-    border-radius: clamp(18px, 3vw, 42px);
+  /* The keyboard sits over the keyboard part of the desk photo, not below the scene. */
+  .keyboard-art {
+    z-index: 3;
+    border-radius: 4% / 12%;
+    overflow: hidden;
     background:
-      linear-gradient(180deg, rgba(255,255,255,.34), transparent 12%),
-      linear-gradient(160deg, var(--beige-1) 0%, #c0a278 33%, var(--beige-2) 82%, #7e6144 100%);
-    box-shadow:
-      inset 0 5px 5px rgba(255,255,255,.28),
-      inset 0 -10px 15px rgba(67,42,22,.35),
-      0 20px 30px rgba(0,0,0,.56);
+      linear-gradient(180deg, rgba(255,255,255,.17), transparent 12%),
+      linear-gradient(160deg, #cfb990 0%, #af9066 56%, #806144 100%);
+    border: clamp(2px, .35vw, 6px) solid #72583e;
+    box-shadow: inset 0 3px 6px rgba(255,255,255,.20), inset 0 -6px 9px rgba(54,33,17,.34), 0 9px 15px rgba(0,0,0,.38);
+    padding: 6% 5% 8%;
   }
 
-  .keyboard-shell::before {
+  .keyboard-art::before {
     content: "COMMODORE 64";
     position: absolute;
-    top: clamp(8px, 1.2vw, 18px);
-    left: clamp(20px, 4vw, 62px);
-    padding: 2px 10px;
-    border-radius: 4px;
-    color: #f2ead9;
+    left: 5.5%;
+    top: 2.2%;
+    padding: .3% 2.3%;
+    border-radius: 3px;
+    color: #eee7d7;
     background: #594a3e;
     font-family: Arial, sans-serif;
-    font-size: clamp(9px, 1.35vw, 19px);
+    font-size: clamp(5px, .82vw, 12px);
     font-weight: 800;
     letter-spacing: .06em;
     text-shadow: 1px 1px #1b1511;
-    box-shadow: inset 0 1px rgba(255,255,255,.24);
-  }
-
-  .keyboard-shell::after {
-    content: "";
-    position: absolute;
-    inset: clamp(22px, 3vw, 45px) clamp(12px, 2.5vw, 38px) clamp(12px, 2vw, 30px);
-    pointer-events: none;
-    border-radius: 8px;
-    border: 1px solid rgba(65,44,29,.32);
-    box-shadow: inset 0 0 16px rgba(69,42,19,.22);
+    box-shadow: inset 0 1px rgba(255,255,255,.22);
   }
 
   .keyboard {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(64px, 10vw, 140px);
-    gap: clamp(12px, 3vw, 46px);
+    grid-template-columns: minmax(0, 1fr) 10%;
+    gap: 4%;
     align-items: end;
+    height: 100%;
   }
 
-  .key-grid { display: grid; gap: clamp(4px, .65vw, 10px); }
-  .key-row { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: clamp(4px, .65vw, 10px); }
+  .key-grid { display: grid; gap: 4%; height: 100%; }
+  .key-row { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 1.15%; }
 
   button.key {
     appearance: none;
     border: 0;
     min-width: 0;
-    height: clamp(30px, 5.1vw, 69px);
-    padding: 2px;
+    padding: 1px;
     color: #efe7d9;
-    background: linear-gradient(145deg, #4d4744 0%, var(--key-top) 39%, var(--key-bottom) 100%);
-    border-radius: clamp(3px, .45vw, 7px);
-    box-shadow:
-      0 clamp(2px, .42vw, 6px) 0 #0e0b0a,
-      0 clamp(5px, .8vw, 10px) clamp(4px, .8vw, 10px) rgba(0,0,0,.42),
-      inset 1px 1px 1px rgba(255,255,255,.13),
-      inset -2px -2px 2px rgba(0,0,0,.35);
+    background: linear-gradient(145deg, #4c4642 0%, #34302d 40%, #151313 100%);
+    border-radius: 3px;
+    box-shadow: 0 4px 0 #0c0a0a, 0 7px 8px rgba(0,0,0,.40), inset 1px 1px 1px rgba(255,255,255,.13), inset -2px -2px 2px rgba(0,0,0,.35);
     font-family: "Courier New", monospace;
-    font-size: clamp(7px, 1.05vw, 15px);
+    font-size: clamp(4px, .63vw, 9px);
     font-weight: 700;
-    line-height: 1.05;
+    line-height: 1.0;
     text-align: center;
     text-shadow: 1px 1px 1px #080707;
     cursor: pointer;
@@ -208,65 +182,89 @@
     transition: transform 55ms linear, box-shadow 55ms linear, filter 55ms linear;
   }
 
-  button.key:hover { filter: brightness(1.14); }
-  button.key:focus-visible { outline: 2px solid #ffe96e; outline-offset: 2px; }
+  button.key:hover { filter: brightness(1.15); }
+  button.key:focus-visible { outline: 2px solid #ffe96e; outline-offset: 1px; }
   button.key.pressed, button.key:active {
-    transform: translateY(clamp(2px, .42vw, 6px));
-    box-shadow: 0 0 0 #0e0b0a, inset 1px 2px 4px rgba(0,0,0,.65);
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #0c0a0a, inset 1px 2px 4px rgba(0,0,0,.65);
     filter: brightness(.79);
   }
 
   .w2 { grid-column: span 2; }
-  .w3 { grid-column: span 3; }
   .space { grid-column: 4 / span 7; }
+  .side-keys { display: grid; grid-template-rows: repeat(4, 1fr); gap: 5%; }
+  .side-keys button.key { font-size: clamp(4px, .58vw, 8px); }
 
-  .side-keys { display: grid; grid-template-rows: repeat(4, 1fr); gap: clamp(5px, .8vw, 11px); }
-  .side-keys button.key { height: clamp(38px, 6.5vw, 86px); }
+  #mobileInput { position: fixed; width: 1px; height: 1px; left: -10000px; top: 0; opacity: 0; }
 
-  .legend { display: block; font-size: .8em; opacity: .82; }
-  .primary { display: block; }
-
-  .mobile-input { position: fixed; width: 1px; height: 1px; left: -10000px; top: 0; opacity: 0; }
-
-  @media (max-width: 620px) {
-    .monitor-stage { aspect-ratio: 10 / 11; }
-    .screen-note { right: 13px; top: 12px; width: 118px; }
-    .terminal { padding-top: 150px; }
-    .keyboard-shell { width: 100%; padding-left: 10px; padding-right: 10px; }
-    .keyboard { grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; }
-    .key-row { gap: 3px; }
-    button.key { height: 28px; font-size: 6px; }
-    .side-keys { gap: 4px; }
-    .side-keys button.key { height: 34px; }
+  @media (max-width: 650px) {
+    body { overflow: auto; }
+    .scene { min-height: 100svh; }
+    .terminal { font-size: clamp(6px, 2.4vw, 11px); }
+    .postit { font-size: clamp(5px, 1.75vw, 9px); }
+    button.key { font-size: clamp(3px, 1.1vw, 6px); box-shadow: 0 2px 0 #0c0a0a, 0 3px 4px rgba(0,0,0,.35); }
   }
 </style>
 </head>
 <body>
-<main class="machine">
-  <section class="monitor-stage" aria-label="Commodore 64 terminal">
+<div class="scene" id="scene">
+  <img id="deskPhoto" src="assets/c64-main-machine.jpg" alt="Retro Commodore 64 desk setup">
+
+  <section class="overlay crt" id="crt" aria-label="Commodore 64 terminal">
     <div class="terminal" id="terminal" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div>
-    <aside class="screen-note" aria-label="Handwritten load command reminder">LOAD "$",8
+  </section>
+
+  <aside class="overlay postit" id="postit" aria-label="Handwritten load command reminder">LOAD "$",8
 LIST
 
 LOAD "PAREIDOLIA",8
 LOAD "PALUDARIUM",8
 LOAD "CCTV",8</aside>
-  </section>
 
-  <section class="keyboard-shell" aria-label="Interactive Commodore 64 keyboard">
+  <section class="overlay keyboard-art" id="keyboardArt" aria-label="Interactive Commodore 64 keyboard">
     <div class="keyboard">
       <div class="key-grid" id="keyGrid"></div>
       <div class="side-keys" id="sideKeys"></div>
     </div>
   </section>
-</main>
-<input class="mobile-input" id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="C64 command input">
+</div>
+<input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="C64 command input">
 
 <script>
+  /* Adjust only these fractions if the supplied desk photograph changes. */
+  const REGIONS = {
+    crt: { left: 0.284, top: 0.183, width: 0.300, height: 0.238 },
+    postit: { left: 0.525, top: 0.195, width: 0.108, height: 0.110 },
+    keyboard: { left: 0.165, top: 0.500, width: 0.670, height: 0.175 }
+  };
+
+  const scene = document.getElementById('scene');
+  const deskPhoto = document.getElementById('deskPhoto');
   const terminal = document.getElementById('terminal');
   const mobileInput = document.getElementById('mobileInput');
   const keyGrid = document.getElementById('keyGrid');
   const sideKeys = document.getElementById('sideKeys');
+
+  function place(id, region) {
+    const photo = deskPhoto.getBoundingClientRect();
+    const parent = scene.getBoundingClientRect();
+    const el = document.getElementById(id);
+    el.style.left = (photo.left - parent.left + photo.width * region.left) + 'px';
+    el.style.top = (photo.top - parent.top + photo.height * region.top) + 'px';
+    el.style.width = (photo.width * region.width) + 'px';
+    el.style.height = (photo.height * region.height) + 'px';
+  }
+
+  function layout() {
+    place('crt', REGIONS.crt);
+    place('postit', REGIONS.postit);
+    place('keyboardArt', REGIONS.keyboard);
+  }
+
+  if (deskPhoto.complete) layout();
+  deskPhoto.addEventListener('load', layout);
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', () => setTimeout(layout, 120));
 
   const programs = [
     { file: 'PAREIDOLIA', url: 'https://pareidolia.tallkidd.com' },
@@ -275,27 +273,13 @@ LOAD "CCTV",8</aside>
   ];
 
   const rows = [
-    [
-      ['RUN', 'run'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['DEL', 'back']
-    ],
-    [
-      ['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['HOME', '']
-    ],
-    [
-      ['C=', ''], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'w2']
-    ],
-    [
-      ['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', ''], ['SPACE', ' ', 'space']
-    ]
+    [['RUN', 'run'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['DEL', 'back']],
+    [['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['HOME', '']],
+    [['C=', ''], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'w2']],
+    [['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', ''], ['SPACE', ' ', 'space']]
   ];
 
-  const side = [
-    ['CLR\nHOME', 'clear'],
-    ['INST\nDEL', 'back'],
-    ['↑', ''],
-    ['↓', '']
-  ];
-
+  const side = [['CLR\nHOME', 'clear'], ['INST\nDEL', 'back'], ['↑', ''], ['↓', '']];
   const liveKeys = {};
   let output = '';
   let command = '';
@@ -305,7 +289,7 @@ LOAD "CCTV",8</aside>
     const button = document.createElement('button');
     button.className = `key ${modifier}`.trim();
     button.type = 'button';
-    button.innerHTML = label.replace('\n', '<span class="legend"><br></span>');
+    button.innerHTML = label.replace('\n', '<br>');
     button.setAttribute('aria-label', label.replace('\n', ' '));
     button.addEventListener('pointerdown', event => {
       event.preventDefault();
@@ -322,31 +306,29 @@ LOAD "CCTV",8</aside>
     row.forEach(([label, value, modifier]) => rowEl.appendChild(makeKey(label, value, modifier)));
     keyGrid.appendChild(rowEl);
   });
-
   side.forEach(([label, value]) => sideKeys.appendChild(makeKey(label, value)));
 
   function pressVisual(value) {
-    const buttons = liveKeys[String(value).toLowerCase()] || [];
-    buttons.forEach(button => {
+    (liveKeys[String(value).toLowerCase()] || []).forEach(button => {
       button.classList.add('pressed');
       setTimeout(() => button.classList.remove('pressed'), 105);
     });
   }
 
+  function esc(text) {
+    return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   function render(cursor = true) {
-    terminal.innerHTML = output + escapeHtml(command) + (cursor ? '<span class="cursor"></span>' : '');
+    terminal.innerHTML = output + esc(command) + (cursor ? '<span class="cursor"></span>' : '');
     terminal.scrollTop = terminal.scrollHeight;
   }
 
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-  }
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-  function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-  async function type(text, speed = 24) {
+  async function type(text, speed = 25) {
     for (const char of text) {
-      output += char === '\n' ? '<br>' : escapeHtml(char);
+      output += char === '\n' ? '<br>' : esc(char);
       if (char.trim()) pressVisual(char);
       render();
       await sleep(speed);
@@ -355,120 +337,86 @@ LOAD "CCTV",8</aside>
 
   function listing() {
     const files = programs.map((program, index) => {
-      const blocks = String((index + 1) * 3).padStart(3, ' ');
-      return `${blocks} <a href="${program.url}" data-program="${program.file}">"${program.file}"</a> PRG<br>`;
+      return `${String((index + 1) * 3).padStart(3, ' ')} <a href="${program.url}" data-program="${program.file}">"${program.file}"</a> PRG<br>`;
     }).join('');
     return `0 "TALLKIDD MAIN MACHINE" 64<br>${files}664 BLOCKS FREE<br><br>`;
   }
 
-  function bindProgramLinks() {
+  function bindLinks() {
     terminal.querySelectorAll('[data-program]').forEach(link => {
       link.addEventListener('click', event => {
         event.preventDefault();
         const program = programs.find(item => item.file === link.dataset.program);
-        if (program) run(program);
+        if (program) runProgram(program);
       });
     });
   }
 
   async function boot() {
-    await type('**** COMMODORE 64 BASIC V2 ****\n\n', 19);
+    await type('**** COMMODORE 64 BASIC V2 ****\n\n', 18);
     await type('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 14);
-    await type('READY.\n', 25);
+    await type('READY.\n', 24);
     await sleep(320);
     await type('LOAD "$",8\n', 43);
     await sleep(150);
     await type('SEARCHING FOR $\n', 23);
     await sleep(220);
-    await type('LOADING\nREADY.\n', 24);
+    await type('LOADING\nREADY.\n', 23);
     await sleep(120);
-    await type('LIST\n\n', 45);
+    await type('LIST\n\n', 44);
     output = listing();
     render();
-    bindProgramLinks();
+    bindLinks();
     await type('READY.\n', 26);
     ready = true;
     render();
   }
 
-  function findProgram(text) {
-    const upper = text.toUpperCase();
-    return programs.find(program => upper.includes(program.file));
-  }
-
-  async function run(program) {
+  async function runProgram(program) {
     ready = false;
     output += `LOAD &quot;${program.file}&quot;,8,1<br>`;
     render();
     await sleep(170);
-    await type(`SEARCHING FOR ${program.file}\n`, 26);
+    await type(`SEARCHING FOR ${program.file}\n`, 25);
     await sleep(300);
-    await type('LOADING\nREADY.\nRUN\n', 25);
+    await type('LOADING\nREADY.\nRUN\n', 24);
     await sleep(350);
     window.location.assign(program.url);
   }
 
   async function execute() {
     const typed = command.trim();
-    if (!typed || !ready) return;
-    output += escapeHtml(command) + '<br>';
+    if (!ready || !typed) return;
+    output += esc(command) + '<br>';
     command = '';
     render();
-
     if (/^LIST$/i.test(typed)) {
       output = listing();
       render();
-      bindProgramLinks();
+      bindLinks();
       return;
     }
-
-    const program = findProgram(typed);
-    if (program) {
-      await run(program);
-      return;
-    }
-
+    const program = programs.find(item => typed.toUpperCase().includes(item.file));
+    if (program) return runProgram(program);
     output += '?FILE NOT FOUND ERROR<br>READY.<br>';
     render();
   }
 
   function handle(value) {
     if (!ready || !value) return;
-    if (value === 'back') {
-      command = command.slice(0, -1);
-    } else if (value === 'clear') {
-      output = '';
-      command = '';
-    } else if (value === 'enter' || value === 'run') {
-      execute();
-      return;
-    } else if (value.length === 1) {
-      command += value.toUpperCase();
-    }
+    if (value === 'back') command = command.slice(0, -1);
+    else if (value === 'clear') { output = ''; command = ''; }
+    else if (value === 'enter' || value === 'run') { execute(); return; }
+    else if (value.length === 1) command += value.toUpperCase();
     render();
   }
 
-  function focusMobile() {
-    if (!ready) return;
-    mobileInput.focus();
-  }
-
-  terminal.addEventListener('pointerdown', focusMobile);
-
+  terminal.addEventListener('pointerdown', () => { if (ready) mobileInput.focus(); });
   document.addEventListener('keydown', event => {
     if (!ready) return;
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      pressVisual('enter');
-      handle('enter');
-    } else if (event.key === 'Backspace') {
-      event.preventDefault();
-      pressVisual('back');
-      handle('back');
-    } else if (event.key.length === 1) {
-      pressVisual(event.key);
-      handle(event.key);
-    }
+    if (event.key === 'Enter') { event.preventDefault(); pressVisual('enter'); handle('enter'); }
+    else if (event.key === 'Backspace') { event.preventDefault(); pressVisual('back'); handle('back'); }
+    else if (event.key.length === 1) { pressVisual(event.key); handle(event.key); }
   });
 
   boot();

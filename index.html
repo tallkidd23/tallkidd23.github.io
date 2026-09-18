@@ -231,10 +231,9 @@ body {
 
 <script>
 const programs = {
-  PAREIDOLIA: "https://pareidolia.tallkidd.com",
   JESSEOS: "https://jesseos.tallkidd.com",
-  CCTV: "https://cctv.tallkidd.com",
-  ARCADE: null
+  PAREIDOLIA: "https://pareidolia.tallkidd.com",
+  CCTV: "https://cctv.tallkidd.com"
 };
 
 const crt = document.getElementById("crt");
@@ -260,6 +259,14 @@ function draw() {
 function line(text = "") {
   out.textContent += (out.textContent ? "\n" : "") + text;
   draw();
+}
+
+function directory() {
+  line('0 "TALLKIDD DISK" 00 2A');
+  line('10 "JESSEOS" PRG');
+  line('20 "PAREIDOLIA" PRG');
+  line('30 "CCTV" PRG');
+  line("38911 BLOCKS FREE.");
 }
 
 function boot() {
@@ -325,16 +332,15 @@ function execute() {
     return;
   }
 
+  if (cmd === "DIR" || cmd === "DIRECTORY" || cmd === 'LOAD "$",8' || cmd === 'LOAD "$",8,1') {
+    directory();
+    line("READY.");
+    return;
+  }
+
   if (cmd === "RUN") {
     if (!loaded) {
       line("?FILE NOT FOUND ERROR");
-      line("READY.");
-      return;
-    }
-
-    if (loaded === "ARCADE") {
-      line("ARCADE DIRECTORY");
-      line("COMING SOON.");
       line("READY.");
       return;
     }

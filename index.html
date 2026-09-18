@@ -21,8 +21,8 @@
 }
 
 :root {
-  --blue: #416fb5;
-  --bright: #5685cf;
+  --blue: #2a4a7f;
+  --bright: #4a6fb5;
   --glow: rgba(44, 88, 157, 0.42);
 }
 
@@ -53,14 +53,13 @@ body {
 
 /*
   CRT overlay:
-  Expanded 1.5% farther left to fill more of the
-  visible blue monitor screen.
+  Expanded left to fill more of the visible blue monitor screen.
 */
 .crt {
   position: absolute;
-  left: 41.725%;
+  left: 40.725%;
   top: 41.95%;
-  width: 27.2%;
+  width: 28.2%;
   height: 18.55%;
   padding: 1.05% 1.15%;
   overflow: hidden;
@@ -103,6 +102,8 @@ body {
   overscroll-behavior: contain;
   scrollbar-width: none;
   white-space: pre-wrap;
+  color: var(--blue);
+  font-size: inherit;
 }
 
 .output::-webkit-scrollbar {
@@ -111,7 +112,8 @@ body {
 
 .command {
   flex: none;
-  color: var(--bright);
+  color: var(--blue);
+  font-size: inherit;
   min-height: 1.2em;
 }
 
@@ -135,7 +137,7 @@ body {
   position: absolute;
   left: 5%;
   right: 5%;
-  bottom: 2%;
+  bottom: 6%;
   display: flex;
   justify-content: space-between;
   gap: 2px;
@@ -200,18 +202,18 @@ body {
 
 /*
   Knife-carved desk instructions:
-  Krazynights is doubled in height, with a restrained
-  recessed groove and a small exposed-wood highlight.
+  Slightly smaller so it sits fully on the desk,
+  with a lighter fresh-cut wood highlight.
 */
 .carved {
   position: absolute;
   left: 18%;
-  top: 96.45%;
+  top: 95.9%;
   width: 64%;
-  height: 3.3%;
-  color: rgba(43, 24, 12, 0.82);
+  height: 3.0%;
+  color: rgba(78, 45, 18, 0.86);
   font-family: KrazyNights, Georgia, serif;
-  font-size: clamp(16px, 2.2vw, 26px);
+  font-size: clamp(14px, 1.9vw, 22px);
   font-weight: 400;
   line-height: 1;
   text-align: center;
@@ -227,9 +229,9 @@ body {
   position: relative;
   padding: 0.08em 0.36em 0.05em;
   text-shadow:
-    -0.8px -0.7px 0 rgba(22, 10, 5, 0.6),
-    0.75px 0.8px 0 rgba(218, 157, 91, 0.4),
-    0 1.5px 1.5px rgba(18, 7, 3, 0.32);
+    -0.8px -0.7px 0 rgba(35, 16, 7, 0.55),
+    0.75px 0.8px 0 rgba(242, 184, 108, 0.48),
+    0 1.5px 1.5px rgba(28, 12, 5, 0.28);
 }
 
 .carved span::after {
@@ -239,9 +241,28 @@ body {
   right: 4%;
   bottom: -1px;
   height: 1px;
-  background: rgba(226, 164, 96, 0.25);
-  box-shadow: 0 -1px 1px rgba(22, 9, 4, 0.28);
-  opacity: 0.78;
+  background: rgba(255, 205, 128, 0.35);
+  box-shadow: 0 -1px 1px rgba(35, 14, 6, 0.22);
+  opacity: 0.85;
+}
+
+/* In-screen Return/Run button for mobile reliability */
+.return-btn {
+  position: absolute;
+  right: 3%;
+  bottom: 2%;
+  border: 0;
+  background: rgba(65, 111, 181, 0.18);
+  color: var(--bright);
+  font: inherit;
+  padding: 0.15em 0.6em;
+  border-radius: 18%;
+  cursor: pointer;
+  text-shadow: 0 0 1px var(--glow);
+}
+
+.return-btn:active {
+  background: rgba(65, 111, 181, 0.35);
 }
 
 @media (max-width: 700px) {
@@ -259,8 +280,8 @@ body {
   }
 
   .carved {
-    top: 96.45%;
-    font-size: clamp(12px, 4.05vw, 20px);
+    top: 95.9%;
+    font-size: clamp(12px, 3.6vw, 18px);
   }
 
   .keys {
@@ -295,6 +316,10 @@ body {
       <button data-load="ARCADE">ARCADE</button>
     </div>
 
+    <button class="return-btn" id="returnBtn" aria-label="Return / Run command">
+      RETURN
+    </button>
+
     <input
       id="mobileInput"
       class="mobile-input"
@@ -327,6 +352,7 @@ const out = document.getElementById("output");
 const command = document.getElementById("command");
 const mobile = document.getElementById("mobileInput");
 const keys = document.getElementById("keys");
+const returnBtn = document.getElementById("returnBtn");
 
 let buffer = "";
 let loaded = null;
@@ -364,7 +390,6 @@ function boot() {
     "64K RAM SYSTEM 38911 BASIC BYTES FREE",
     "",
     "READY.",
-    'TYPE DIR OR LOAD "NAME",8,1',
     ""
   ];
 
@@ -556,6 +581,12 @@ mobile.addEventListener("keydown", (event) => {
       execute();
     }
   }
+});
+
+returnBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  execute();
+  mobile.focus();
 });
 
 document.querySelectorAll("[data-load]").forEach((button) => {

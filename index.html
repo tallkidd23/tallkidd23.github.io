@@ -5,259 +5,460 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>tallkidd.com</title>
 <style>
-  :root{
-    --c64-text:#8fdcff;
-    --c64-glow:#4fb8ff;
-    --c64-white:#f2fbff;
-    --key-face:#2c2c30;
-    --key-face-hi:#3c3c42;
-    --key-label:#d9d6cf;
-    --plate:#8a7550;
-    --plate-hi:#b09a6c;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:#000;font-family:"Courier New", monospace;overflow:hidden;}
-
-  .scene{
-    position:relative;
-    width:100vw;height:100vh;
-    display:flex;align-items:center;justify-content:center;
-    background:#000;
-  }
-  #photo{
-    display:block;
-    max-width:100vw;
-    max-height:100vh;
-    width:auto;height:auto;
+  :root {
+    --c64-text: #8fdcff;
+    --c64-glow: #4fb8ff;
+    --c64-white: #f2fbff;
+    --key-face: #2c2c30;
+    --key-hi: #3c3c42;
+    --key-label: #d9d6cf;
+    --plate: #8a7550;
+    --plate-hi: #b09a6c;
   }
 
-  .crt-overlay{
-    position:absolute;
-    clip-path: polygon(2% 4%, 98% 4%, 90% 96%, 10% 96%);
-    padding: 3% 4%;
-    color:var(--c64-text);
-    text-shadow:0 0 4px var(--c64-glow), 0 0 1px var(--c64-white);
-    font-size: clamp(7px, 1.6vw, 15px);
-    line-height:1.45;
-    white-space:pre-wrap;
-    background: rgba(15,20,60,0.06);
-    overflow:hidden;
-    pointer-events:auto;
-  }
-  .cursor{
-    display:inline-block;width:.55em;height:1em;background:var(--c64-white);
-    vertical-align:-1px; animation:blink 1s steps(1) infinite;
-  }
-  @keyframes blink{50%{opacity:0;}}
-  a.prog{color:var(--c64-white); text-decoration:none; cursor:pointer;}
-  a.prog:hover, a.prog:focus{background:var(--c64-white); color:#20305a; outline:none;}
+  * { box-sizing: border-box; }
 
-  .kb-wrap{
-    position:absolute;
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    font-family: "Courier New", monospace;
+    overflow: hidden;
+  }
+
+  .scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+
+  #photo {
+    display: block;
+    max-width: 100vw;
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+  }
+
+  /* Clean simulated CRT: covers the words baked into the source photo. */
+  .crt {
+    position: absolute;
+    overflow: hidden;
+    clip-path: polygon(3% 4%, 97% 4%, 91% 96%, 9% 96%);
+    border-radius: 18% / 12%;
+    background:
+      radial-gradient(ellipse at 46% 40%, #26467f 0%, #1b336a 48%, #101d46 78%, #070d25 100%);
+    box-shadow:
+      inset 0 0 20px 6px rgba(0, 0, 0, .55),
+      inset 0 0 70px rgba(0, 0, 0, .55);
+  }
+
+  .crt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, .025) 0,
+        rgba(255, 255, 255, .025) 1px,
+        rgba(0, 0, 0, .10) 2px,
+        rgba(0, 0, 0, .10) 3px
+      ),
+      radial-gradient(ellipse at 26% 13%, rgba(255, 255, 255, .10), transparent 34%);
+    mix-blend-mode: screen;
+    opacity: .7;
+  }
+
+  .terminal {
+    position: absolute;
+    inset: 0;
+    padding: 4.5% 6%;
+    color: var(--c64-text);
+    text-shadow: 0 0 4px var(--c64-glow), 0 0 1px var(--c64-white);
+    font-size: clamp(7px, 1.45vw, 15px);
+    line-height: 1.43;
+    white-space: pre-wrap;
+    overflow: hidden;
+    cursor: text;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: .55em;
+    height: 1em;
+    background: var(--c64-white);
+    vertical-align: -1px;
+    animation: blink 1s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  a.prog {
+    color: var(--c64-white);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  a.prog:hover,
+  a.prog:focus {
+    background: var(--c64-white);
+    color: #20305a;
+    outline: none;
+  }
+
+  .tap-hint {
+    position: absolute;
+    right: 8%;
+    bottom: 5%;
+    font-size: .62em;
+    opacity: .8;
+    letter-spacing: .03em;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    50% { opacity: .25; }
+  }
+
+  /* A hidden real input opens iPhone's keyboard after tapping the CRT. */
+  #mobileInput {
+    position: fixed;
+    left: -1000px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    font-size: 16px;
+  }
+
+  /* CSS keyboard: visible activity and tappable keys. */
+  .kb-wrap {
+    position: absolute;
     perspective: 900px;
-    pointer-events:none;
     -webkit-mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
     mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 78%, transparent 100%);
   }
-  .kb-plate{
-    position:absolute; inset:0;
+
+  .kb-plate {
+    position: absolute;
+    inset: 0;
     background: linear-gradient(165deg, var(--plate-hi) 0%, var(--plate) 55%, #6e5c3d 100%);
     border-radius: 6% / 14%;
-    transform: rotateX(22deg) rotateZ(-0.6deg);
+    transform: rotateX(22deg) rotateZ(-.6deg);
     transform-origin: 50% 100%;
-    box-shadow: inset 0 6px 14px rgba(0,0,0,.35), 0 10px 20px rgba(0,0,0,.4);
+    box-shadow: inset 0 6px 14px rgba(0, 0, 0, .35), 0 10px 20px rgba(0, 0, 0, .4);
     padding: 5% 3%;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     gap: 3%;
   }
-  .kb-row{ display:flex; gap:.4%; }
-  .key{
-    flex:1 1 auto;
-    background: linear-gradient(180deg, var(--key-face-hi), var(--key-face));
+
+  .kb-row { display: flex; gap: .4%; }
+
+  .key {
+    flex: 1 1 auto;
+    background: linear-gradient(180deg, var(--key-hi), var(--key-face));
     border-radius: 3px;
-    box-shadow:
-      0 2px 0 #111,
-      0 3px 3px rgba(0,0,0,.5),
-      inset 0 1px 0 rgba(255,255,255,.08);
+    box-shadow: 0 2px 0 #111, 0 3px 3px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08);
     color: var(--key-label);
     font-size: clamp(5px, .78vw, 9px);
-    display:flex; align-items:center; justify-content:center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: transform .05s ease-out, box-shadow .05s ease-out;
-    user-select:none;
+    user-select: none;
+    cursor: pointer;
   }
-  .key.wide-2{flex-grow:2;}
-  .key.wide-3{flex-grow:3;}
-  .key.wide-6{flex-grow:6;}
-  .key.active{
+
+  .key.wide-2 { flex-grow: 2; }
+  .key.wide-6 { flex-grow: 6; }
+
+  .key.active {
     transform: translateY(2px);
-    box-shadow:
-      0 0 0 #111,
-      0 1px 1px rgba(0,0,0,.5),
-      inset 0 1px 2px rgba(0,0,0,.5);
+    box-shadow: 0 0 0 #111, 0 1px 1px rgba(0, 0, 0, .5), inset 0 1px 2px rgba(0, 0, 0, .5);
     background: linear-gradient(180deg, #4a4a52, #26262a);
   }
 </style>
 </head>
 <body>
-
 <div class="scene" id="scene">
   <img id="photo" src="assets/c64-desk.jpg" alt="Commodore 64 desk">
-  <div class="crt-overlay" id="screen" tabindex="0"></div>
+
+  <div class="crt" id="crt">
+    <div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Commodore terminal"></div>
+  </div>
+
   <div class="kb-wrap" id="kbWrap">
     <div class="kb-plate" id="kbPlate"></div>
   </div>
 </div>
 
+<input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Commodore command input">
+
 <script>
-const SCREEN_REGION = { left: 0.2104, top: 0.1501, width: 0.2759, height: 0.2502 };
-const KB_REGION     = { left: 0.0991, top: 0.4504, width: 0.5869, height: 0.1835 };
+  /* Coordinates measured as fractions of c64-desk.jpg (1312 × 1199). */
+  const SCREEN_REGION = { left: .213, top: .171, width: .264, height: .220 };
+  const KB_REGION = { left: .0991, top: .4504, width: .5869, height: .1835 };
 
-const photo = document.getElementById('photo');
-const screenEl = document.getElementById('screen');
-const kbWrap = document.getElementById('kbWrap');
+  const photo = document.getElementById('photo');
+  const crt = document.getElementById('crt');
+  const screen = document.getElementById('screen');
+  const kbWrap = document.getElementById('kbWrap');
+  const scene = document.getElementById('scene');
+  const mobileInput = document.getElementById('mobileInput');
 
-function layout(){
-  const rect = photo.getBoundingClientRect();
-  const sceneRect = document.getElementById('scene').getBoundingClientRect();
-  const offX = rect.left - sceneRect.left;
-  const offY = rect.top - sceneRect.top;
-  const w = rect.width, h = rect.height;
+  function place(element, region, x, y, width, height) {
+    element.style.left = x + region.left * width + 'px';
+    element.style.top = y + region.top * height + 'px';
+    element.style.width = region.width * width + 'px';
+    element.style.height = region.height * height + 'px';
+  }
 
-  screenEl.style.left = (offX + SCREEN_REGION.left * w) + 'px';
-  screenEl.style.top = (offY + SCREEN_REGION.top * h) + 'px';
-  screenEl.style.width = (SCREEN_REGION.width * w) + 'px';
-  screenEl.style.height = (SCREEN_REGION.height * h) + 'px';
+  function layout() {
+    const photoRect = photo.getBoundingClientRect();
+    const sceneRect = scene.getBoundingClientRect();
+    const x = photoRect.left - sceneRect.left;
+    const y = photoRect.top - sceneRect.top;
+    place(crt, SCREEN_REGION, x, y, photoRect.width, photoRect.height);
+    place(kbWrap, KB_REGION, x, y, photoRect.width, photoRect.height);
+  }
 
-  kbWrap.style.left = (offX + KB_REGION.left * w) + 'px';
-  kbWrap.style.top = (offY + KB_REGION.top * h) + 'px';
-  kbWrap.style.width = (KB_REGION.width * w) + 'px';
-  kbWrap.style.height = (KB_REGION.height * h) + 'px';
-}
+  if (photo.complete) layout();
+  else photo.addEventListener('load', layout);
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', () => setTimeout(layout, 100));
 
-if(photo.complete){ layout(); } else { photo.addEventListener('load', layout); }
-window.addEventListener('resize', layout);
-window.addEventListener('orientationchange', layout);
+  const programs = [
+    { file: 'PAREIDOLIA', href: 'https://pareidolia.tallkidd.com' },
+    { file: 'PALUDARIUM', href: 'https://paludarium.tallkidd.com' },
+    { file: 'CCTV', href: 'https://cctv.tallkidd.com' }
+  ];
 
-const programs = [
-  { file: "PAREIDOLIA", href: "https://pareidolia.tallkidd.com" },
-  { file: "TARIFFS", href: "https://tariffs.tallkidd.com" },
-  { file: "PALUDARIUM", href: "https://paludarium.tallkidd.com" },
-  { file: "ARCADE", href: "https://arcade.tallkidd.com" }
-];
+  const rows = [
+    [["←", 'back'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['HOME', ''], ['DEL', 'back']],
+    [['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['RESTORE', '']],
+    [['RUN', 'run'], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'wide-2']],
+    [['C=', ''], ['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', '', 'wide-2']],
+    [['SPACE', ' ', 'wide-6']]
+  ];
 
-const rows = [
-  [["\u2190",""],["1","1"],["2","2"],["3","3"],["4","4"],["5","5"],["6","6"],["7","7"],["8","8"],["9","9"],["0","0"],["+",""],["-",""],["\u00a3",""],["HOME",""],["DEL",""]],
-  [["CTRL",""],["Q","q"],["W","w"],["E","e"],["R","r"],["T","t"],["Y","y"],["U","u"],["I","i"],["O","o"],["P","p"],["@",""],["*",""],["\u2191",""],["RESTORE",""]],
-  [["RUN",""],["A","a"],["S","s"],["D","d"],["F","f"],["G","g"],["H","h"],["J","j"],["K","k"],["L","l"],[":",""],[";",""],["=",""],["RETURN","\n","wide-2"]],
-  [["C=",""],["SHIFT",""],["Z","z"],["X","x"],["C","c"],["V","v"],["B","b"],["N","n"],["M","m"],[",",","],[".",""],["/",""],["SHIFT","","wide-2"]],
-  [["SPACE","","wide-6"]]
-];
+  const kbPlate = document.getElementById('kbPlate');
+  const keyEls = {};
+  let command = '';
+  let out = '';
+  let ready = false;
 
-const kbPlate = document.getElementById('kbPlate');
-const keyEls = {};
-
-rows.forEach(rowData=>{
-  const rowEl = document.createElement('div');
-  rowEl.className = 'kb-row';
-  rowData.forEach(([label, matchChar, widthClass])=>{
-    const k = document.createElement('div');
-    k.className = 'key' + (widthClass ? ' ' + widthClass : '');
-    k.textContent = label;
-    rowEl.appendChild(k);
-    if(matchChar){
-      if(!keyEls[matchChar]) keyEls[matchChar] = [];
-      keyEls[matchChar].push(k);
-    }
-  });
-  kbPlate.appendChild(rowEl);
-});
-layout();
-
-function pressKey(ch){
-  const lower = ch.toLowerCase();
-  const list = keyEls[lower];
-  if(list){
-    list.forEach(el=>{
-      el.classList.add('active');
-      setTimeout(()=>el.classList.remove('active'), 90);
+  function flash(key) {
+    const list = keyEls[key] || keyEls[key && key.toLowerCase()];
+    if (!list) return;
+    list.forEach(element => {
+      element.classList.add('active');
+      setTimeout(() => element.classList.remove('active'), 100);
     });
   }
-}
 
-const screen = screenEl;
-const disk = 'TALLKIDD DISK';
-let out = '';
-
-function render(showCursor=true){
-  screen.innerHTML = out + (showCursor? '<span class="cursor"></span>' : '');
-  screen.scrollTop = screen.scrollHeight;
-}
-
-function typeText(text, speed=45){
-  return new Promise(resolve=>{
-    let i=0;
-    const iv = setInterval(()=>{
-      const ch = text[i];
-      out += ch;
-      pressKey(ch);
-      render();
-      i++;
-      if(i>=text.length){clearInterval(iv);resolve();}
-    }, speed);
-  });
-}
-
-function wait(ms){return new Promise(r=>setTimeout(r,ms));}
-
-function listingHTML(){
-  let html = out;
-  html += `0 "${disk}" 64\n`;
-  programs.forEach((p,idx)=>{
-    const blocks = String(Math.max(2,(idx+1)*3)).padStart(3,' ');
-    html += `${blocks} <a class="prog" href="${p.href}" data-file="${p.file}">"${p.file}"</a> PRG\n`;
-  });
-  html += `664 BLOCKS FREE\n\n`;
-  return html;
-}
-
-async function boot(){
-  await typeText('READY.\n', 30);
-  await wait(600);
-  await typeText('LOAD "$",8\n', 70);
-  await wait(300);
-  await typeText('SEARCHING FOR $\n', 40);
-  await wait(400);
-  await typeText('LOADING\nREADY.\n', 30);
-  await wait(200);
-  await typeText('LIST\n\n', 60);
-  await wait(200);
-  out = listingHTML();
-  render(true);
-  await typeText('READY.\n', 30);
-  attachHandlers();
-}
-
-function attachHandlers(){
-  document.querySelectorAll('a.prog').forEach(a=>{
-    a.addEventListener('click', async (e)=>{
-      e.preventDefault();
-      const file = a.dataset.file;
-      const href = a.getAttribute('href');
-      out = out.replace(/<span class="cursor"><\/span>$/,'');
-      await typeText(`\nLOAD "${file}",8,1\n`, 55);
-      await wait(300);
-      await typeText(`SEARCHING FOR ${file}\n`, 40);
-      await wait(500);
-      await typeText('LOADING\nREADY.\nRUN\n', 45);
-      await wait(500);
-      window.location.href = href;
+  function addKey(label, key, wide) {
+    const element = document.createElement('div');
+    element.className = 'key' + (wide ? ' ' + wide : '');
+    element.textContent = label;
+    element.addEventListener('pointerdown', event => {
+      event.preventDefault();
+      handleKey(key);
+      flash(key);
     });
-  });
-}
+    if (key) (keyEls[key] ??= []).push(element);
+    return element;
+  }
 
-boot();
+  rows.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'kb-row';
+    row.forEach(([label, key, wide]) => rowEl.appendChild(addKey(label, key, wide)));
+    kbPlate.appendChild(rowEl);
+  });
+
+  function render(cursor = true) {
+    const hint = ready && !command ? '<span class="tap-hint">TAP SCREEN TO TYPE</span>' : '';
+    screen.innerHTML = out + (command || '') + (cursor ? '<span class="cursor"></span>' : '') + hint;
+    screen.scrollTop = screen.scrollHeight;
+  }
+
+  function typeText(text, speed = 42) {
+    return new Promise(resolve => {
+      let i = 0;
+      const timer = setInterval(() => {
+        const char = text[i];
+        out += char;
+        if (char.trim()) flash(char.toLowerCase());
+        render();
+        if (++i >= text.length) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, speed);
+    });
+  }
+
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function listing() {
+    let html = out + `0 "TALLKIDD DISK" 64\n`;
+    programs.forEach((program, index) => {
+      html += `${String((index + 1) * 3).padStart(3, ' ')} <a class="prog" href="${program.href}" data-file="${program.file}">"${program.file}"</a> PRG\n`;
+    });
+    return html + '664 BLOCKS FREE\n\n';
+  }
+
+  async function boot() {
+    await typeText('**** COMMODORE 64 BASIC V2 ****\n\n', 24);
+    await typeText('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 18);
+    await typeText('READY.\n', 28);
+    await wait(450);
+    await typeText('LOAD "$",8\n', 60);
+    await wait(220);
+    await typeText('SEARCHING FOR $\n', 30);
+    await wait(300);
+    await typeText('LOADING\nREADY.\n', 30);
+    await wait(150);
+    await typeText('LIST\n\n', 52);
+    out = listing();
+    render();
+    await typeText('READY.\n', 28);
+    ready = true;
+    render();
+    bindLinks();
+  }
+
+  function bindLinks() {
+    document.querySelectorAll('a.prog').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        runProgram(link.dataset.file, link.href);
+      });
+    });
+  }
+
+  function matchProgram(input) {
+    const normalized = input.toUpperCase();
+    return programs.find(program => normalized.includes(program.file));
+  }
+
+  async function execute() {
+    const typed = command.trim();
+    if (!typed) return;
+    out += command + '\n';
+    command = '';
+    render();
+
+    const program = matchProgram(typed);
+    if (/^LIST$/i.test(typed)) {
+      out = '';
+      out = listing();
+      render();
+      return;
+    }
+
+    if (program) {
+      await runProgram(program.file, program.href);
+      return;
+    }
+
+    out += '?FILE NOT FOUND ERROR\nREADY.\n';
+    render();
+  }
+
+  async function runProgram(file, href) {
+    ready = false;
+    out += `LOAD "${file}",8,1\n`;
+    render();
+    await wait(250);
+    await typeText(`SEARCHING FOR ${file}\n`, 30);
+    await wait(400);
+    await typeText('LOADING\nREADY.\nRUN\n', 30);
+    await wait(400);
+    window.location.href = href;
+  }
+
+  function handleKey(key) {
+    if (!ready) return;
+    if (key === 'back') {
+      command = command.slice(0, -1);
+      render();
+      return;
+    }
+    if (key === 'enter' || key === 'run') {
+      execute();
+      return;
+    }
+    if (key && key.length === 1) {
+      command += key.toUpperCase();
+      render();
+    }
+  }
+
+  function focusInput() {
+    if (!ready) return;
+    mobileInput.value = '';
+    mobileInput.focus();
+  }
+
+  screen.addEventListener('pointerdown', focusInput);
+
+  screen.addEventListener('keydown', event => {
+    if (!ready) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      execute();
+    } else if (event.key === 'Backspace') {
+      event.preventDefault();
+      handleKey('back');
+    } else if (event.key.length === 1) {
+      event.preventDefault();
+      handleKey(event.key);
+    }
+  });
+
+  mobileInput.addEventListener('input', () => {
+    const value = mobileInput.value;
+    const delta = value.slice(command.length);
+    if (delta) for (const char of delta) handleKey(char);
+  });
+
+  mobileInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      execute();
+      mobileInput.value = '';
+    } else if (event.key === 'Backspace' && mobileInput.value.length <= command.length) {
+      handleKey('back');
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (document.activeElement === mobileInput || document.activeElement === screen || !ready) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      execute();
+    } else if (event.key === 'Backspace') {
+      event.preventDefault();
+      handleKey('back');
+    } else if (event.key.length === 1) {
+      handleKey(event.key);
+    }
+  });
+
+  boot();
 </script>
 </body>
 </html>

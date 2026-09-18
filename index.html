@@ -1,425 +1,655 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#050505">
-<title>tallkidd.com — Main Machine</title>
-<style>
-  :root {
-    --screen-blue: #8fdcff;
-    --screen-white: #effcff;
-    --screen-shadow: #285fa9;
-  }
+  <meta charset="UTF-8" />
+  <title>C64 Load Scene – tallkidd23</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --c64-beige: #d8c8a8;
+      --c64-dark: #a89880;
+      --c64-key: #c0b090;
+      --c64-key-shadow: #8a7a60;
+      --screen-bg: #4030a0;
+      --screen-text: #a8c8ff;
+      --screen-border: #c0b080;
+      --key-active: #e8d8b8;
+      --key-active-shadow: #6a5a40;
+      --prompt-bg: rgba(0, 0, 0, 0.6);
+      --prompt-text: #ffffff;
+      --paper-bg: #f5f1e6;
+      --paper-line: #cfd8e6;
+      --ink: #1b2a4a;
+      --ink-light: #3a4b6b;
+    }
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: #050505; }
-  body { overflow: hidden; font-family: "Courier New", Courier, monospace; }
+    * {
+      box-sizing: border-box;
+    }
 
-  .scene {
-    position: relative;
-    min-height: 100svh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: #050505;
-  }
+    body {
+      margin: 0;
+      background: var(--bg-color);
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-  #deskPhoto {
-    display: block;
-    width: auto;
-    height: auto;
-    max-width: 100vw;
-    max-height: 100svh;
-    object-fit: contain;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
+    .wrapper {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 24px;
+      width: min(96vw, 1300px);
+      align-items: start;
+    }
 
-  /* All overlay positions are expressed as fractions of the displayed desk photo. */
-  .overlay {
-    position: absolute;
-    z-index: 2;
-  }
+    /* Scene */
+    .scene {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(180deg, #2a2a2a, #111);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      overflow: hidden;
+    }
 
-  .crt {
-    overflow: hidden;
-    border-radius: 8% / 12%;
-    background: radial-gradient(ellipse at 49% 37%, #2b548e 0%, #1e4178 44%, #122858 76%, #080f27 100%);
-    box-shadow: inset 0 0 13px 4px rgba(0,0,0,.50), inset 0 0 48px rgba(0,0,0,.55), 0 0 10px rgba(48,121,255,.24);
-  }
+    .monitor {
+      position: absolute;
+      left: 6%;
+      top: 8%;
+      width: 42%;
+      height: 55%;
+      background: linear-gradient(180deg, #d8c8a8, #b8a888);
+      border-radius: 12px;
+      box-shadow:
+        inset 0 2px 6px rgba(255,255,255,0.4),
+        inset 0 -4px 10px rgba(0,0,0,0.25),
+        0 10px 30px rgba(0,0,0,0.5);
+      display: grid;
+      place-items: center;
+    }
 
-  .crt::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 3;
-    background:
-      repeating-linear-gradient(to bottom, rgba(255,255,255,.035) 0 1px, rgba(0,0,0,.13) 2px 4px),
-      radial-gradient(ellipse at 28% 12%, rgba(255,255,255,.13), transparent 34%),
-      radial-gradient(ellipse at 50% 50%, transparent 57%, rgba(0,0,0,.42) 100%);
-    mix-blend-mode: screen;
-  }
+    .monitor-bezel {
+      width: 92%;
+      height: 92%;
+      background: #333;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      box-shadow:
+        inset 0 2px 8px rgba(0,0,0,0.8),
+        0 2px 6px rgba(255,255,255,0.05);
+    }
 
-  .terminal {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    overflow: auto;
-    padding: 5.2% 6.4%;
-    color: var(--screen-blue);
-    font-size: clamp(7px, 1.35vw, 17px);
-    line-height: 1.38;
-    letter-spacing: .015em;
-    white-space: pre-wrap;
-    text-shadow: 0 0 3px var(--screen-white), 0 0 7px var(--screen-shadow);
-    scrollbar-width: none;
-    cursor: text;
-  }
+    .screen {
+      width: 92%;
+      height: 92%;
+      background: var(--screen-bg);
+      border: 8px solid var(--screen-border);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 40px rgba(0,0,0,0.6),
+        0 0 0 2px rgba(0,0,0,0.4);
+      font-family: "Courier New", Courier, monospace;
+      color: var(--screen-text);
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.35;
+      text-shadow: 0 0 4px rgba(168,200,255,0.5);
+    }
 
-  .terminal::-webkit-scrollbar { display: none; }
-  .terminal a { color: var(--screen-white); text-decoration: none; }
-  .terminal a:hover, .terminal a:focus { color: #17325e; background: var(--screen-white); outline: none; }
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.15),
+        rgba(0,0,0,0.15) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      mix-blend-mode: multiply;
+    }
 
-  .cursor {
-    display: inline-block;
-    width: .58em;
-    height: 1.03em;
-    margin-left: .05em;
-    vertical-align: -.16em;
-    background: var(--screen-white);
-    animation: blink 1s steps(1) infinite;
-  }
+    .screen-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
-  @keyframes blink { 50% { opacity: 0; } }
+    .screen-lines {
+      flex: 1;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+    }
 
-  .postit {
-    z-index: 4;
-    padding: 7% 8%;
-    color: #1e3550;
-    background: #ffe96e;
-    font-family: "Comic Sans MS", "Bradley Hand", cursive;
-    font-size: clamp(6px, .95vw, 14px);
-    line-height: 1.38;
-    white-space: pre-line;
-    transform: rotate(3deg);
-    box-shadow: 2px 4px 7px rgba(0,0,0,.36), inset 0 0 8px rgba(157,124,0,.15);
-    filter: saturate(.96);
-    pointer-events: none;
-  }
+    .prompt-overlay {
+      margin-top: 8px;
+      background: var(--prompt-bg);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--prompt-text);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    }
 
-  .postit::before {
-    content: "";
-    position: absolute;
-    height: 13%;
-    inset: 0 0 auto;
-    background: rgba(255,255,255,.16);
-  }
+    .prompt-label {
+      font-weight: 700;
+      color: #9fd;
+      white-space: nowrap;
+    }
 
-  /* The keyboard sits over the keyboard part of the desk photo, not below the scene. */
-  .keyboard-art {
-    z-index: 3;
-    border-radius: 4% / 12%;
-    overflow: hidden;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.17), transparent 12%),
-      linear-gradient(160deg, #cfb990 0%, #af9066 56%, #806144 100%);
-    border: clamp(2px, .35vw, 6px) solid #72583e;
-    box-shadow: inset 0 3px 6px rgba(255,255,255,.20), inset 0 -6px 9px rgba(54,33,17,.34), 0 9px 15px rgba(0,0,0,.38);
-    padding: 6% 5% 8%;
-  }
+    .prompt-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: inherit;
+      min-width: 0;
+    }
 
-  .keyboard-art::before {
-    content: "COMMODORE 64";
-    position: absolute;
-    left: 5.5%;
-    top: 2.2%;
-    padding: .3% 2.3%;
-    border-radius: 3px;
-    color: #eee7d7;
-    background: #594a3e;
-    font-family: Arial, sans-serif;
-    font-size: clamp(5px, .82vw, 12px);
-    font-weight: 800;
-    letter-spacing: .06em;
-    text-shadow: 1px 1px #1b1511;
-    box-shadow: inset 0 1px rgba(255,255,255,.22);
-  }
+    .prompt-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: #fff;
+      animation: blink 1s steps(2, start) infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
 
-  .keyboard {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 10%;
-    gap: 4%;
-    align-items: end;
-    height: 100%;
-  }
+    @keyframes blink {
+      to { opacity: 0; }
+    }
 
-  .key-grid { display: grid; gap: 4%; height: 100%; }
-  .key-row { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 1.15%; }
+    .keyboard {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 6%;
+      width: 70%;
+      height: 28%;
+      background: linear-gradient(180deg, var(--c64-beige), var(--c64-dark));
+      border-radius: 14px;
+      box-shadow:
+        inset 0 2px 6px rgba(255,255,255,0.5),
+        inset 0 -6px 14px rgba(0,0,0,0.35),
+        0 12px 40px rgba(0,0,0,0.6);
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 6px;
+      padding: 10px 12px;
+    }
 
-  button.key {
-    appearance: none;
-    border: 0;
-    min-width: 0;
-    padding: 1px;
-    color: #efe7d9;
-    background: linear-gradient(145deg, #4c4642 0%, #34302d 40%, #151313 100%);
-    border-radius: 3px;
-    box-shadow: 0 4px 0 #0c0a0a, 0 7px 8px rgba(0,0,0,.40), inset 1px 1px 1px rgba(255,255,255,.13), inset -2px -2px 2px rgba(0,0,0,.35);
-    font-family: "Courier New", monospace;
-    font-size: clamp(4px, .63vw, 9px);
-    font-weight: 700;
-    line-height: 1.0;
-    text-align: center;
-    text-shadow: 1px 1px 1px #080707;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: transform 55ms linear, box-shadow 55ms linear, filter 55ms linear;
-  }
+    .key-row {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 6px;
+    }
 
-  button.key:hover { filter: brightness(1.15); }
-  button.key:focus-visible { outline: 2px solid #ffe96e; outline-offset: 1px; }
-  button.key.pressed, button.key:active {
-    transform: translateY(4px);
-    box-shadow: 0 0 0 #0c0a0a, inset 1px 2px 4px rgba(0,0,0,.65);
-    filter: brightness(.79);
-  }
+    .key {
+      background: linear-gradient(180deg, var(--c64-key), #a89878);
+      border-radius: 6px;
+      position: relative;
+      box-shadow:
+        0 4px 0 var(--c64-key-shadow),
+        inset 0 2px 4px rgba(255,255,255,0.35),
+        inset 0 -2px 4px rgba(0,0,0,0.25);
+      transition: transform 60ms ease, box-shadow 60ms ease, background 60ms ease;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #333;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+      user-select: none;
+      cursor: default;
+    }
 
-  .w2 { grid-column: span 2; }
-  .space { grid-column: 4 / span 7; }
-  .side-keys { display: grid; grid-template-rows: repeat(4, 1fr); gap: 5%; }
-  .side-keys button.key { font-size: clamp(4px, .58vw, 8px); }
+    .key.pressed {
+      transform: translateY(3px);
+      box-shadow:
+        0 1px 0 var(--key-active-shadow),
+        inset 0 2px 6px rgba(0,0,0,0.35),
+        inset 0 -1px 2px rgba(255,255,255,0.2);
+      background: linear-gradient(180deg, var(--key-active), #c8b898);
+    }
 
-  #mobileInput { position: fixed; width: 1px; height: 1px; left: -10000px; top: 0; opacity: 0; }
+    .key-label {
+      text-align: center;
+      line-height: 1.1;
+    }
 
-  @media (max-width: 650px) {
-    body { overflow: auto; }
-    .scene { min-height: 100svh; }
-    .terminal { font-size: clamp(6px, 2.4vw, 11px); }
-    .postit { font-size: clamp(5px, 1.75vw, 9px); }
-    button.key { font-size: clamp(3px, 1.1vw, 6px); box-shadow: 0 2px 0 #0c0a0a, 0 3px 4px rgba(0,0,0,.35); }
-  }
-</style>
+    .key-small {
+      font-size: 8px;
+    }
+
+    .key-wide {
+      grid-column: span 2;
+    }
+
+    .key-space {
+      grid-column: span 7;
+    }
+
+    .brand {
+      position: absolute;
+      right: 14px;
+      bottom: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    /* Handwritten note */
+    .note-panel {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--paper-bg);
+      border-radius: 4px;
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.5),
+        inset 0 0 0 1px rgba(0,0,0,0.08);
+      padding: 18px 18px 24px;
+      transform: rotate(-1deg);
+    }
+
+    .note-lines {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        to bottom,
+        var(--paper-line) 1px,
+        transparent 1px
+      );
+      background-size: 100% 26px;
+      background-position: 0 22px;
+      pointer-events: none;
+      opacity: 0.6;
+      border-radius: 4px;
+    }
+
+    .note-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+      color: var(--ink);
+      line-height: 26px;
+      font-size: 15px;
+    }
+
+    .note-title {
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .note-body {
+      flex: 1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .note-footer {
+      margin-top: 8px;
+      font-style: italic;
+      color: var(--ink-light);
+      font-size: 13px;
+    }
+
+    .instructions {
+      position: absolute;
+      left: 6%;
+      bottom: 6%;
+      width: 30%;
+      font-size: 12px;
+      color: #aaa;
+      background: rgba(0,0,0,0.35);
+      padding: 8px 10px;
+      border-radius: 8px;
+      line-height: 1.35;
+    }
+
+    .instructions strong {
+      color: #ddd;
+    }
+
+    @media (max-width: 1000px) {
+      .wrapper {
+        grid-template-columns: 1fr;
+      }
+      .note-panel {
+        aspect-ratio: 16 / 10;
+        transform: rotate(0deg);
+      }
+      .instructions {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="scene" id="scene">
-  <img id="deskPhoto" src="assets/c64-main-machine.jpg" alt="Retro Commodore 64 desk setup">
+  <div class="wrapper">
+    <!-- C64 Scene -->
+    <div class="scene" id="scene">
+      <div class="monitor">
+        <div class="monitor-bezel">
+          <div class="screen" id="screen">
+            <div class="scanlines"></div>
+            <div class="screen-content">
+              <div class="screen-lines" id="screenLines">
+**** COMMODORE 64 BASIC V2 ****
 
-  <section class="overlay crt" id="crt" aria-label="Commodore 64 terminal">
-    <div class="terminal" id="terminal" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div>
-  </section>
+64K RAM SYSTEM  38911 BASIC BYTES FREE
 
-  <aside class="overlay postit" id="postit" aria-label="Handwritten load command reminder">LOAD "$",8
-LIST
+READY.
+              </div>
+              <div class="prompt-overlay">
+                <span class="prompt-label">LOAD:</span>
+                <input
+                  type="text"
+                  class="prompt-input"
+                  id="promptInput"
+                  placeholder='LOAD "*",8,1'
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <span class="prompt-cursor"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-LOAD "PAREIDOLIA",8
-LOAD "PALUDARIUM",8
-LOAD "CCTV",8</aside>
+      <div class="keyboard" id="keyboard">
+        <!-- Keys generated by JS -->
+      </div>
 
-  <section class="overlay keyboard-art" id="keyboardArt" aria-label="Interactive Commodore 64 keyboard">
-    <div class="keyboard">
-      <div class="key-grid" id="keyGrid"></div>
-      <div class="side-keys" id="sideKeys"></div>
+      <div class="brand">COMMODORE 64</div>
+
+      <div class="instructions">
+        <strong>How it works:</strong><br />
+        • Type on your physical keyboard – the on‑screen keys will depress.<br />
+        • Use LOAD "NAME",8,1 then RUN to “load” your projects.<br />
+        • This is all one self‑contained scene; no external files needed.
+      </div>
     </div>
-  </section>
-</div>
-<input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="C64 command input">
 
-<script>
-  /* Adjust only these fractions if the supplied desk photograph changes. */
-  const REGIONS = {
-    crt: { left: 0.284, top: 0.183, width: 0.300, height: 0.238 },
-    postit: { left: 0.525, top: 0.195, width: 0.108, height: 0.110 },
-    keyboard: { left: 0.165, top: 0.500, width: 0.670, height: 0.175 }
-  };
+    <!-- Handwritten note -->
+    <div class="note-panel">
+      <div class="note-lines"></div>
+      <div class="note-content">
+        <div class="note-title">Memory jog – loading your projects (’80s style)</div>
+        <div class="note-body">Hey you,
 
-  const scene = document.getElementById('scene');
-  const deskPhoto = document.getElementById('deskPhoto');
-  const terminal = document.getElementById('terminal');
-  const mobileInput = document.getElementById('mobileInput');
-  const keyGrid = document.getElementById('keyGrid');
-  const sideKeys = document.getElementById('sideKeys');
+To load one of your web “programs” from the datasette, type exactly like this:
 
-  function place(id, region) {
-    const photo = deskPhoto.getBoundingClientRect();
-    const parent = scene.getBoundingClientRect();
-    const el = document.getElementById(id);
-    el.style.left = (photo.left - parent.left + photo.width * region.left) + 'px';
-    el.style.top = (photo.top - parent.top + photo.height * region.top) + 'px';
-    el.style.width = (photo.width * region.width) + 'px';
-    el.style.height = (photo.height * region.height) + 'px';
-  }
+  LOAD "PAREIDOLIA",8,1
+  RUN
 
-  function layout() {
-    place('crt', REGIONS.crt);
-    place('postit', REGIONS.postit);
-    place('keyboardArt', REGIONS.keyboard);
-  }
+or:
 
-  if (deskPhoto.complete) layout();
-  deskPhoto.addEventListener('load', layout);
-  window.addEventListener('resize', layout);
-  window.addEventListener('orientationchange', () => setTimeout(layout, 120));
+  LOAD "JESSEOS",8,1
+  RUN
 
-  const programs = [
-    { file: 'PAREIDOLIA', url: 'https://pareidolia.tallkidd.com' },
-    { file: 'PALUDARIUM', url: 'https://paludarium.tallkidd.com' },
-    { file: 'CCTV', url: 'https://cctv.tallkidd.com' }
-  ];
+or:
 
-  const rows = [
-    [['RUN', 'run'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['DEL', 'back']],
-    [['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['HOME', '']],
-    [['C=', ''], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'w2']],
-    [['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', ''], ['SPACE', ' ', 'space']]
-  ];
+  LOAD "CCTV",8,1
+  RUN
 
-  const side = [['CLR\nHOME', 'clear'], ['INST\nDEL', 'back'], ['↑', ''], ['↓', '']];
-  const liveKeys = {};
-  let output = '';
-  let command = '';
-  let ready = false;
+There’s also an ARCADE directory on the disk:
 
-  function makeKey(label, value, modifier = '') {
-    const button = document.createElement('button');
-    button.className = `key ${modifier}`.trim();
-    button.type = 'button';
-    button.innerHTML = label.replace('\n', '<br>');
-    button.setAttribute('aria-label', label.replace('\n', ' '));
-    button.addEventListener('pointerdown', event => {
-      event.preventDefault();
-      pressVisual(value || label);
-      handle(value);
-    });
-    if (value) (liveKeys[value.toLowerCase()] ||= []).push(button);
-    return button;
-  }
+  LOAD "ARCADE",8,1
+  RUN
 
-  rows.forEach(row => {
-    const rowEl = document.createElement('div');
-    rowEl.className = 'key-row';
-    row.forEach(([label, value, modifier]) => rowEl.appendChild(makeKey(label, value, modifier)));
-    keyGrid.appendChild(rowEl);
-  });
-  side.forEach(([label, value]) => sideKeys.appendChild(makeKey(label, value)));
+After LOAD you’ll see:
+  READY.
+then after RUN the project “boots” in your head (and in the browser).
 
-  function pressVisual(value) {
-    (liveKeys[String(value).toLowerCase()] || []).forEach(button => {
-      button.classList.add('pressed');
-      setTimeout(() => button.classList.remove('pressed'), 105);
-    });
-  }
+Tip: Use SHIFT + 4 for the quote mark (").
+Don’t forget the comma and the 8,1 – that’s device 8, secondary address 1.
 
-  function esc(text) {
-    return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
+Have fun,
+– You, circa 1986
+        </div>
+        <div class="note-footer">
+          P.S. If it says ?SYNTAX ERROR, check your quotes and commas.
+        </div>
+      </div>
+    </div>
+  </div>
 
-  function render(cursor = true) {
-    terminal.innerHTML = output + esc(command) + (cursor ? '<span class="cursor"></span>' : '');
-    terminal.scrollTop = terminal.scrollHeight;
-  }
+  <script>
+    // Simplified C64-like key layout
+    const keyLayout = [
+      // Row 1
+      [
+        { label: "F1", code: "F1" },
+        { label: "F3", code: "F3" },
+        { label: "F5", code: "F5" },
+        { label: "F7", code: "F7" },
+        { label: "F2", code: "F2" },
+        { label: "F4", code: "F4" },
+        { label: "F6", code: "F6" },
+        { label: "F8", code: "F8" },
+        { label: "", code: "" },
+        { label: "", code: "" },
+        { label: "", code: "" },
+        { label: "", code: "" },
+        { label: "RESTORE", code: "Help", small: true },
+        { label: "", code: "" },
+        { label: "", code: "" },
+      ],
+      // Row 2
+      [
+        { label: "3", sub: "£", code: "Digit3" },
+        { label: "W", sub: "", code: "KeyW" },
+        { label: "A", sub: "", code: "KeyA" },
+        { label: "4", sub: "↑", code: "Digit4" },
+        { label: "Z", sub: "", code: "KeyZ" },
+        { label: "S", sub: "", code: "KeyS" },
+        { label: "E", sub: "", code: "KeyE" },
+        { label: "5", sub: "↓", code: "Digit5" },
+        { label: "X", sub: "", code: "KeyX" },
+        { label: "D", sub: "", code: "KeyD" },
+        { label: "R", sub: "", code: "KeyR" },
+        { label: "6", sub: "π", code: "Digit6" },
+        { label: "C", sub: "", code: "KeyC" },
+        { label: "F", sub: "", code: "KeyF" },
+        { label: "T", sub: "", code: "KeyT" },
+      ],
+      // Row 3
+      [
+        { label: "Q", sub: "", code: "KeyQ" },
+        { label: "1", sub: "", code: "Digit1" },
+        { label: "", code: "", wide: true, labelMain: "SHIFT", small: true },
+        { label: "2", sub: "", code: "Digit2" },
+        { label: "SPACE", sub: "", code: "Space", wide: true, labelMain: "SPACE" },
+        { label: "0", sub: "", code: "Digit0" },
+        { label: "", code: "", wide: true, labelMain: "SHIFT", small: true },
+        { label: "9", sub: "", code: "Digit9" },
+        { label: "P", sub: "", code: "KeyP" },
+        { label: "I", sub: "", code: "KeyI" },
+        { label: "U", sub: "", code: "KeyU" },
+        { label: "8", sub: "", code: "Digit8" },
+        { label: "O", sub: "", code: "KeyO" },
+        { label: "Y", sub: "", code: "KeyY" },
+        { label: "7", sub: "", code: "Digit7" },
+      ],
+      // Row 4
+      [
+        { label: "=", sub: "+", code: "Equal" },
+        { label: "@", sub: "", code: "Backquote" },
+        { label: "*", sub: ";", code: "BracketRight" },
+        { label: "-", sub: "_", code: "Minus" },
+        { label: ":", sub: "", code: "Semicolon" },
+        { label: ";", sub: "", code: "Quote" },
+        { label: "/", sub: "", code: "Slash" },
+        { label: ".", sub: ">", code: "Period" },
+        { label: "L", sub: "", code: "KeyL" },
+        { label: "K", sub: "", code: "KeyK" },
+        { label: "J", sub: "", code: "KeyJ" },
+        { label: "H", sub: "", code: "KeyH" },
+        { label: "G", sub: "", code: "KeyG" },
+        { label: "M", sub: "", code: "KeyM" },
+        { label: "N", sub: "", code: "KeyN" },
+      ],
+    ];
 
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const keyboardEl = document.getElementById("keyboard");
+    const promptInput = document.getElementById("promptInput");
+    const screenLines = document.getElementById("screenLines");
 
-  async function type(text, speed = 25) {
-    for (const char of text) {
-      output += char === '\n' ? '<br>' : esc(char);
-      if (char.trim()) pressVisual(char);
-      render();
-      await sleep(speed);
-    }
-  }
+    const keyMap = new Map();
 
-  function listing() {
-    const files = programs.map((program, index) => {
-      return `${String((index + 1) * 3).padStart(3, ' ')} <a href="${program.url}" data-program="${program.file}">"${program.file}"</a> PRG<br>`;
-    }).join('');
-    return `0 "TALLKIDD MAIN MACHINE" 64<br>${files}664 BLOCKS FREE<br><br>`;
-  }
+    keyLayout.forEach((row) => {
+      const rowEl = document.createElement("div");
+      rowEl.className = "key-row";
 
-  function bindLinks() {
-    terminal.querySelectorAll('[data-program]').forEach(link => {
-      link.addEventListener('click', event => {
-        event.preventDefault();
-        const program = programs.find(item => item.file === link.dataset.program);
-        if (program) runProgram(program);
+      row.forEach((k) => {
+        if (!k.code) {
+          const spacer = document.createElement("div");
+          spacer.style.visibility = "hidden";
+          rowEl.appendChild(spacer);
+          return;
+        }
+
+        const keyEl = document.createElement("div");
+        keyEl.className = "key";
+        if (k.small) keyEl.classList.add("key-small");
+        if (k.wide) keyEl.classList.add("key-wide");
+        if (k.code === "Space") keyEl.classList.add("key-space");
+
+        const labelEl = document.createElement("div");
+        labelEl.className = "key-label";
+
+        if (k.labelMain) {
+          labelEl.textContent = k.labelMain;
+        } else {
+          const main = document.createElement("div");
+          main.textContent = k.label;
+          labelEl.appendChild(main);
+          if (k.sub) {
+            const sub = document.createElement("div");
+            sub.textContent = k.sub;
+            sub.style.fontSize = "8px";
+            sub.style.opacity = "0.8";
+            labelEl.appendChild(sub);
+          }
+        }
+
+        keyEl.appendChild(labelEl);
+        rowEl.appendChild(keyEl);
+        keyMap.set(k.code, keyEl);
       });
+
+      keyboardEl.appendChild(rowEl);
     });
-  }
 
-  async function boot() {
-    await type('**** COMMODORE 64 BASIC V2 ****\n\n', 18);
-    await type('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 14);
-    await type('READY.\n', 24);
-    await sleep(320);
-    await type('LOAD "$",8\n', 43);
-    await sleep(150);
-    await type('SEARCHING FOR $\n', 23);
-    await sleep(220);
-    await type('LOADING\nREADY.\n', 23);
-    await sleep(120);
-    await type('LIST\n\n', 44);
-    output = listing();
-    render();
-    bindLinks();
-    await type('READY.\n', 26);
-    ready = true;
-    render();
-  }
-
-  async function runProgram(program) {
-    ready = false;
-    output += `LOAD &quot;${program.file}&quot;,8,1<br>`;
-    render();
-    await sleep(170);
-    await type(`SEARCHING FOR ${program.file}\n`, 25);
-    await sleep(300);
-    await type('LOADING\nREADY.\nRUN\n', 24);
-    await sleep(350);
-    window.location.assign(program.url);
-  }
-
-  async function execute() {
-    const typed = command.trim();
-    if (!ready || !typed) return;
-    output += esc(command) + '<br>';
-    command = '';
-    render();
-    if (/^LIST$/i.test(typed)) {
-      output = listing();
-      render();
-      bindLinks();
-      return;
+    function pressKey(code) {
+      const el = keyMap.get(code);
+      if (!el) return;
+      el.classList.add("pressed");
+      setTimeout(() => el.classList.remove("pressed"), 120);
     }
-    const program = programs.find(item => typed.toUpperCase().includes(item.file));
-    if (program) return runProgram(program);
-    output += '?FILE NOT FOUND ERROR<br>READY.<br>';
-    render();
-  }
 
-  function handle(value) {
-    if (!ready || !value) return;
-    if (value === 'back') command = command.slice(0, -1);
-    else if (value === 'clear') { output = ''; command = ''; }
-    else if (value === 'enter' || value === 'run') { execute(); return; }
-    else if (value.length === 1) command += value.toUpperCase();
-    render();
-  }
+    // Simulated disk directory
+    const programs = [
+      { name: "PAREIDOLIA", url: "https://pareidolia.tallkidd.com" },
+      { name: "JESSEOS", url: "https://jesseos.tallkidd.com" },
+      { name: "CCTV", url: "https://cctv.tallkidd.com" },
+      { name: "ARCADE", url: "#", dir: true },
+    ];
 
-  terminal.addEventListener('pointerdown', () => { if (ready) mobileInput.focus(); });
-  document.addEventListener('keydown', event => {
-    if (!ready) return;
-    if (event.key === 'Enter') { event.preventDefault(); pressVisual('enter'); handle('enter'); }
-    else if (event.key === 'Backspace') { event.preventDefault(); pressVisual('back'); handle('back'); }
-    else if (event.key.length === 1) { pressVisual(event.key); handle(event.key); }
-  });
+    let lastLoaded = null;
 
-  boot();
-</script>
+    function printLine(text) {
+      screenLines.textContent += "\n" + text;
+      screenLines.scrollTop = screenLines.scrollHeight;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (document.activeElement !== promptInput && e.key.length === 1) {
+        promptInput.focus();
+      }
+
+      if (e.code) pressKey(e.code);
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const raw = promptInput.value;
+        const cmd = raw.trim().toUpperCase();
+
+        // Echo the command like C64
+        printLine(raw);
+
+        if (cmd.startsWith("LOAD")) {
+          // Very simple parser: LOAD "NAME",8,1
+          const match = cmd.match(/LOAD\s+"([^"]+)"\s*,\s*8\s*,\s*1/);
+          if (!match) {
+            printLine("?SYNTAX ERROR");
+          } else {
+            const name = match[1];
+            const prog = programs.find(p => p.name.toUpperCase() === name);
+            if (!prog) {
+              printLine("?FILE NOT FOUND ERROR");
+            } else {
+              lastLoaded = prog;
+              printLine("SEARCHING");
+              printLine("LOADING");
+              printLine("READY.");
+            }
+          }
+        } else if (cmd === "RUN") {
+          if (!lastLoaded) {
+            printLine("?FILE NOT FOUND ERROR");
+          } else if (lastLoaded.dir) {
+            printLine("DIRECTORY: ARCADE (PLACEHOLDER)");
+            printLine("READY.");
+          } else {
+            printLine(`BOOTING ${lastLoaded.name}...`);
+            // Simulate a short delay then “open” in new tab
+            setTimeout(() => {
+              window.open(lastLoaded.url, "_blank");
+            }, 700);
+          }
+        } else if (cmd === "" || cmd === " ") {
+          // Just a blank line
+        } else {
+          printLine("?SYNTAX ERROR");
+        }
+
+        promptInput.value = "";
+      }
+    });
+
+    promptInput.focus();
+  </script>
 </body>
 </html>

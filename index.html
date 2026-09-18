@@ -47,7 +47,6 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
-/* CRT reduced by another 1% on each side. */
 .crt {
   position: absolute;
   left: 42.225%;
@@ -84,10 +83,12 @@ body {
 
 .terminal {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
 }
+
+.terminal::-webkit-scrollbar { display: none; }
 
 .output,
 .command {
@@ -98,19 +99,13 @@ body {
 }
 
 .output {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
   white-space: pre-wrap;
 }
 
-.output::-webkit-scrollbar { display: none; }
-
 .command {
-  flex: none;
   min-height: 1.19em;
   text-align: left;
+  white-space: pre-wrap;
 }
 
 .cursor {
@@ -195,9 +190,7 @@ body {
     0 1.5px 1.5px rgba(28, 12, 5, 0.28);
 }
 
-.carved span::after {
-  display: none;
-}
+.carved span::after { display: none; }
 
 @media (max-width: 700px) {
   body { place-items: start center; }
@@ -212,11 +205,9 @@ body {
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
   <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
-    <div class="terminal">
+    <div class="terminal" id="terminal">
       <div class="output" id="output"></div>
-      <div class="command">
-        <span id="command"></span><span class="cursor" aria-hidden="true"></span>
-      </div>
+      <div class="command"><span id="command"></span><span class="cursor" aria-hidden="true"></span></div>
     </div>
 
     <input
@@ -247,6 +238,7 @@ const programs = {
 };
 
 const crt = document.getElementById("crt");
+const terminal = document.getElementById("terminal");
 const out = document.getElementById("output");
 const command = document.getElementById("command");
 const mobile = document.getElementById("mobileInput");
@@ -257,7 +249,7 @@ let loaded = null;
 let ready = false;
 
 function scrollLog() {
-  out.scrollTop = out.scrollHeight;
+  terminal.scrollTop = terminal.scrollHeight;
 }
 
 function draw() {

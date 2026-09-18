@@ -22,6 +22,7 @@
 :root {
   --c64-blue: #2a4a7f;
   --c64-glow: rgba(44, 88, 157, 0.34);
+  --line-height: 0.98em;
 }
 
 * {
@@ -49,11 +50,7 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
-/*
-  Current aligned CRT overlay.
-  Terminal line-height is reduced so about two more
-  lines remain visible before the text scrolls off top.
-*/
+/* The current correctly aligned CRT overlay */
 .crt {
   position: absolute;
   left: 42.225%;
@@ -88,15 +85,15 @@ body {
   );
 }
 
+/*
+  Fixed terminal frame:
+  the output scrolls within its own full-size region,
+  and the prompt is independently pinned at lower-left.
+*/
 .terminal {
+  position: relative;
   height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-}
-
-.terminal::-webkit-scrollbar {
-  display: none;
+  overflow: hidden;
 }
 
 .output,
@@ -108,13 +105,28 @@ body {
 }
 
 .output {
+  position: absolute;
+  inset: 0;
+  padding-bottom: var(--line-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   white-space: pre-wrap;
 }
 
+.output::-webkit-scrollbar {
+  display: none;
+}
+
 .command {
-  min-height: 0.98em;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: var(--line-height);
   text-align: left;
   white-space: pre-wrap;
+  background: transparent;
 }
 
 .cursor {
@@ -132,10 +144,6 @@ body {
   }
 }
 
-/*
-  Invisible text input lets phones use their keyboard
-  after tapping the CRT.
-*/
 .mobile-input {
   position: absolute;
   opacity: 0;
@@ -177,7 +185,7 @@ body {
   transform: translateY(1px);
 }
 
-/* Fresh-cut carved desk instructions, with no underline */
+/* Lighter fresh-wood desk carving, without underline */
 .carved {
   position: absolute;
   left: 18%;
@@ -244,7 +252,7 @@ body {
     <div class="terminal" id="terminal">
       <div class="output" id="output"></div>
 
-      <div class="command">
+      <div class="command" id="prompt">
         <span id="command"></span><span class="cursor" aria-hidden="true"></span>
       </div>
     </div>
@@ -276,7 +284,6 @@ const programs = {
 };
 
 const crt = document.getElementById("crt");
-const terminal = document.getElementById("terminal");
 const out = document.getElementById("output");
 const command = document.getElementById("command");
 const mobile = document.getElementById("mobileInput");
@@ -287,7 +294,7 @@ let loaded = null;
 let ready = false;
 
 function scrollLog() {
-  terminal.scrollTop = terminal.scrollHeight;
+  out.scrollTop = out.scrollHeight;
 }
 
 function draw() {
@@ -386,14 +393,6 @@ function execute() {
     return;
   }
 
-  /*
-    Directory commands:
-
-    DIR
-    DIRECTORY
-    LOAD "$",8
-    LOAD "$",8,1
-  */
   if (
     cmd === "DIR" ||
     cmd === "DIRECTORY" ||
@@ -421,13 +420,6 @@ function execute() {
     return;
   }
 
-  /*
-    Supported loading styles:
-
-    LOAD "JESSEOS",8,1
-    LOAD JESSEOS,8,1
-    JESSEOS LOAD,8,1
-  */
   const official = cmd.match(
     /^LOAD\s+["']?([A-Z0-9]+)["']?\s*(?:,\s*8\s*(?:,\s*1)?)?$/
   );

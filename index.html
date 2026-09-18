@@ -3,422 +3,471 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
 <title>tallkidd.com — Main Machine</title>
 <style>
   :root {
-    --c64-text: #8fdcff;
-    --c64-glow: #4fb8ff;
-    --c64-white: #f2fbff;
-    --key-face: #29282a;
-    --key-hi: #414045;
-    --key-label: #e1ddd2;
-    --plate: #a18762;
-    --plate-hi: #c5ad80;
+    --blue: #8fdcff;
+    --blue-hi: #effcff;
+    --blue-shadow: #285fa9;
+    --beige-1: #d4bd96;
+    --beige-2: #aa8a61;
+    --key-top: #3b3633;
+    --key-bottom: #171515;
   }
 
   * { box-sizing: border-box; }
 
-  html, body {
-    margin: 0;
-    min-height: 100%;
-    background: #050505;
-    font-family: "Courier New", monospace;
+  html, body { margin: 0; min-height: 100%; background: #050505; }
+
+  body {
+    color: var(--blue);
+    font-family: "Courier New", Courier, monospace;
+    overflow-x: hidden;
   }
 
-  .scene {
+  .machine {
+    width: min(100%, 1600px);
+    margin: 0 auto;
+    padding: clamp(10px, 2vw, 30px);
+  }
+
+  .monitor-stage {
     position: relative;
-    width: 100vw;
-    min-height: 100svh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 330px;
     overflow: hidden;
-    background: #050505;
+    border-radius: clamp(8px, 1.2vw, 18px);
+    background:
+      radial-gradient(ellipse at 50% 36%, #253e76 0%, #142a59 35%, #0c1b3d 68%, #050b1d 100%);
+    box-shadow: 0 18px 55px rgba(0, 0, 0, .62), inset 0 0 65px rgba(0, 0, 0, .72);
   }
 
-  #photo {
-    display: block;
-    max-width: 100vw;
-    max-height: 100svh;
-    width: auto;
-    height: auto;
-  }
-
-  /* CRT is intentionally unchanged from the working version. */
-  .crt {
-    position: absolute;
-    overflow: hidden;
-    border-radius: 7% / 10%;
-    background: radial-gradient(ellipse at 48% 39%, #24477f 0%, #193466 54%, #10234e 78%, #080f28 100%);
-    box-shadow: inset 0 0 12px 4px rgba(0, 0, 0, .48), inset 0 0 42px rgba(0, 0, 0, .55), 0 0 5px rgba(53, 129, 255, .18);
-  }
-
-  .crt::before {
+  .monitor-stage::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .025) 0, rgba(255, 255, 255, .025) 1px, rgba(0, 0, 0, .11) 2px, rgba(0, 0, 0, .11) 3px), radial-gradient(ellipse at 28% 13%, rgba(255, 255, 255, .10), transparent 32%);
+    z-index: 4;
+    background:
+      repeating-linear-gradient(to bottom, rgba(255,255,255,.025) 0 1px, rgba(0,0,0,.15) 2px 4px),
+      radial-gradient(ellipse at 30% 7%, rgba(255,255,255,.16), transparent 36%),
+      radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.48) 100%);
     mix-blend-mode: screen;
-    opacity: .72;
+    opacity: .8;
+  }
+
+  .monitor-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    box-shadow: inset 0 0 22px 4px rgba(0,0,0,.75), inset 0 0 115px rgba(0,0,0,.56);
   }
 
   .terminal {
-    position: absolute;
-    inset: 0;
-    padding: 5% 6.5%;
-    color: var(--c64-text);
-    text-shadow: 0 0 4px var(--c64-glow), 0 0 1px var(--c64-white);
-    font-size: clamp(7px, 1.35vw, 16px);
-    line-height: 1.40;
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: clamp(20px, 5vw, 74px) clamp(22px, 7vw, 116px);
+    overflow: auto;
+    font-size: clamp(11px, 1.45vw, 23px);
+    line-height: 1.38;
+    letter-spacing: .015em;
+    color: var(--blue);
+    text-shadow: 0 0 3px var(--blue-hi), 0 0 7px var(--blue-shadow);
     white-space: pre-wrap;
-    overflow: hidden;
     cursor: text;
+    scrollbar-width: none;
   }
+
+  .terminal::-webkit-scrollbar { display: none; }
+
+  .terminal a { color: var(--blue-hi); text-decoration: none; }
+  .terminal a:hover, .terminal a:focus { color: #17325e; background: var(--blue-hi); outline: none; }
 
   .cursor {
     display: inline-block;
-    width: .55em;
-    height: 1em;
-    margin-left: .04em;
-    background: var(--c64-white);
-    vertical-align: -1px;
+    width: .58em;
+    height: 1.03em;
+    margin-left: .05em;
+    vertical-align: -.16em;
+    background: var(--blue-hi);
     animation: blink 1s steps(1) infinite;
   }
 
   @keyframes blink { 50% { opacity: 0; } }
 
-  a.prog { color: var(--c64-white); text-decoration: none; cursor: pointer; }
-  a.prog:hover, a.prog:focus { color: #17315f; background: var(--c64-white); outline: none; }
-
-  .tap-hint {
+  .screen-note {
     position: absolute;
-    right: 7%;
-    bottom: 4%;
-    font-size: .60em;
-    letter-spacing: .03em;
-    opacity: .8;
-    animation: pulse 1.8s ease-in-out infinite;
+    z-index: 3;
+    right: clamp(16px, 4vw, 60px);
+    top: clamp(18px, 4vw, 50px);
+    width: clamp(135px, 17vw, 245px);
+    padding: clamp(9px, 1.2vw, 18px);
+    transform: rotate(3deg);
+    color: #1f3751;
+    background: #ffe96e;
+    font-family: "Comic Sans MS", "Bradley Hand", cursive;
+    font-size: clamp(9px, 1.05vw, 16px);
+    line-height: 1.38;
+    white-space: pre-line;
+    box-shadow: 3px 5px 9px rgba(0,0,0,.35), inset 0 0 8px rgba(157,124,0,.14);
+    filter: saturate(.95);
   }
 
-  @keyframes pulse { 50% { opacity: .22; } }
-
-  #mobileInput {
-    position: fixed;
-    left: -1000px;
+  .screen-note::before {
+    content: "";
+    position: absolute;
+    height: 12%;
+    left: 0;
+    right: 0;
     top: 0;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    font-size: 16px;
+    background: rgba(255,255,255,.15);
   }
 
-  /* Final keyboard fit: broad, low, and lightly trapezoidal. */
-  .kb-wrap {
+  .keyboard-shell {
+    position: relative;
+    width: min(96vw, 1320px);
+    margin: clamp(12px, 2.5vw, 34px) auto 0;
+    padding: clamp(28px, 4.2vw, 62px) clamp(18px, 4vw, 64px) clamp(22px, 3.5vw, 50px);
+    border: clamp(5px, .8vw, 12px) solid #856747;
+    border-radius: clamp(18px, 3vw, 42px);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.34), transparent 12%),
+      linear-gradient(160deg, var(--beige-1) 0%, #c0a278 33%, var(--beige-2) 82%, #7e6144 100%);
+    box-shadow:
+      inset 0 5px 5px rgba(255,255,255,.28),
+      inset 0 -10px 15px rgba(67,42,22,.35),
+      0 20px 30px rgba(0,0,0,.56);
+  }
+
+  .keyboard-shell::before {
+    content: "COMMODORE 64";
     position: absolute;
-    pointer-events: auto;
+    top: clamp(8px, 1.2vw, 18px);
+    left: clamp(20px, 4vw, 62px);
+    padding: 2px 10px;
+    border-radius: 4px;
+    color: #f2ead9;
+    background: #594a3e;
+    font-family: Arial, sans-serif;
+    font-size: clamp(9px, 1.35vw, 19px);
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-shadow: 1px 1px #1b1511;
+    box-shadow: inset 0 1px rgba(255,255,255,.24);
   }
 
-  .kb-plate {
+  .keyboard-shell::after {
+    content: "";
     position: absolute;
-    inset: 0;
-    overflow: hidden;
-    border-radius: 3% / 9%;
-    clip-path: polygon(6% 8%, 96% 3%, 100% 89%, 2% 100%);
-    background: linear-gradient(180deg, var(--plate-hi), var(--plate) 54%, #765f42);
-    transform: perspective(1100px) rotateX(6deg) rotateZ(-0.4deg) scaleY(.96);
-    transform-origin: 50% 100%;
-    box-shadow: inset 0 5px 11px rgba(255, 255, 255, .18), inset 0 -8px 12px rgba(0, 0, 0, .30), 0 7px 14px rgba(0, 0, 0, .35);
-    padding: 8% 6% 10%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 4%;
+    inset: clamp(22px, 3vw, 45px) clamp(12px, 2.5vw, 38px) clamp(12px, 2vw, 30px);
+    pointer-events: none;
+    border-radius: 8px;
+    border: 1px solid rgba(65,44,29,.32);
+    box-shadow: inset 0 0 16px rgba(69,42,19,.22);
   }
 
-  .kb-row { display: flex; gap: .55%; }
+  .keyboard {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(64px, 10vw, 140px);
+    gap: clamp(12px, 3vw, 46px);
+    align-items: end;
+  }
 
-  .key {
-    flex: 1 1 auto;
+  .key-grid { display: grid; gap: clamp(4px, .65vw, 10px); }
+  .key-row { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: clamp(4px, .65vw, 10px); }
+
+  button.key {
+    appearance: none;
+    border: 0;
     min-width: 0;
-    background: linear-gradient(180deg, var(--key-hi), var(--key-face));
-    border-radius: 3px;
-    box-shadow: 0 2px 0 #121214, 0 3px 3px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .08);
-    color: var(--key-label);
-    font-size: clamp(4px, .70vw, 10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: clamp(30px, 5.1vw, 69px);
+    padding: 2px;
+    color: #efe7d9;
+    background: linear-gradient(145deg, #4d4744 0%, var(--key-top) 39%, var(--key-bottom) 100%);
+    border-radius: clamp(3px, .45vw, 7px);
+    box-shadow:
+      0 clamp(2px, .42vw, 6px) 0 #0e0b0a,
+      0 clamp(5px, .8vw, 10px) clamp(4px, .8vw, 10px) rgba(0,0,0,.42),
+      inset 1px 1px 1px rgba(255,255,255,.13),
+      inset -2px -2px 2px rgba(0,0,0,.35);
+    font-family: "Courier New", monospace;
+    font-size: clamp(7px, 1.05vw, 15px);
+    font-weight: 700;
+    line-height: 1.05;
     text-align: center;
-    transition: transform .055s ease-out, box-shadow .055s ease-out;
-    user-select: none;
+    text-shadow: 1px 1px 1px #080707;
     cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 55ms linear, box-shadow 55ms linear, filter 55ms linear;
   }
 
-  .key.wide-2 { flex-grow: 2; }
-  .key.wide-6 { flex-grow: 6; }
+  button.key:hover { filter: brightness(1.14); }
+  button.key:focus-visible { outline: 2px solid #ffe96e; outline-offset: 2px; }
+  button.key.pressed, button.key:active {
+    transform: translateY(clamp(2px, .42vw, 6px));
+    box-shadow: 0 0 0 #0e0b0a, inset 1px 2px 4px rgba(0,0,0,.65);
+    filter: brightness(.79);
+  }
 
-  .key.active {
-    transform: translateY(2px);
-    box-shadow: 0 0 0 #121214, 0 1px 1px rgba(0, 0, 0, .5), inset 0 1px 2px rgba(0, 0, 0, .55);
-    background: linear-gradient(180deg, #4e4d55, #242326);
+  .w2 { grid-column: span 2; }
+  .w3 { grid-column: span 3; }
+  .space { grid-column: 4 / span 7; }
+
+  .side-keys { display: grid; grid-template-rows: repeat(4, 1fr); gap: clamp(5px, .8vw, 11px); }
+  .side-keys button.key { height: clamp(38px, 6.5vw, 86px); }
+
+  .legend { display: block; font-size: .8em; opacity: .82; }
+  .primary { display: block; }
+
+  .mobile-input { position: fixed; width: 1px; height: 1px; left: -10000px; top: 0; opacity: 0; }
+
+  @media (max-width: 620px) {
+    .monitor-stage { aspect-ratio: 10 / 11; }
+    .screen-note { right: 13px; top: 12px; width: 118px; }
+    .terminal { padding-top: 150px; }
+    .keyboard-shell { width: 100%; padding-left: 10px; padding-right: 10px; }
+    .keyboard { grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; }
+    .key-row { gap: 3px; }
+    button.key { height: 28px; font-size: 6px; }
+    .side-keys { gap: 4px; }
+    .side-keys button.key { height: 34px; }
   }
 </style>
 </head>
 <body>
-<div class="scene" id="scene">
-  <img id="photo" src="assets/c64-main-machine.jpg" alt="A Commodore 64 main machine on a retro desk">
-  <div class="crt" id="crt"><div class="terminal" id="screen" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div></div>
-  <div class="kb-wrap" id="kbWrap"><div class="kb-plate" id="kbPlate"></div></div>
-</div>
-<input id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Commodore command input">
+<main class="machine">
+  <section class="monitor-stage" aria-label="Commodore 64 terminal">
+    <div class="terminal" id="terminal" tabindex="0" role="textbox" aria-label="Tallkidd Commodore terminal"></div>
+    <aside class="screen-note" aria-label="Handwritten load command reminder">LOAD "$",8
+LIST
+
+LOAD "PAREIDOLIA",8
+LOAD "PALUDARIUM",8
+LOAD "CCTV",8</aside>
+  </section>
+
+  <section class="keyboard-shell" aria-label="Interactive Commodore 64 keyboard">
+    <div class="keyboard">
+      <div class="key-grid" id="keyGrid"></div>
+      <div class="side-keys" id="sideKeys"></div>
+    </div>
+  </section>
+</main>
+<input class="mobile-input" id="mobileInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="C64 command input">
+
 <script>
-  const SCREEN_REGION = { left: .285, top: .185, width: .295, height: .235 };
-  const KB_REGION = { left: .155, top: .460, width: .690, height: .190 };
-
-  const photo = document.getElementById('photo');
-  const scene = document.getElementById('scene');
-  const crt = document.getElementById('crt');
-  const screen = document.getElementById('screen');
-  const kbWrap = document.getElementById('kbWrap');
+  const terminal = document.getElementById('terminal');
   const mobileInput = document.getElementById('mobileInput');
-
-  function place(element, region, x, y, width, height) {
-    element.style.left = x + region.left * width + 'px';
-    element.style.top = y + region.top * height + 'px';
-    element.style.width = region.width * width + 'px';
-    element.style.height = region.height * height + 'px';
-  }
-
-  function layout() {
-    const photoRect = photo.getBoundingClientRect();
-    const sceneRect = scene.getBoundingClientRect();
-    const x = photoRect.left - sceneRect.left;
-    const y = photoRect.top - sceneRect.top;
-    place(crt, SCREEN_REGION, x, y, photoRect.width, photoRect.height);
-    place(kbWrap, KB_REGION, x, y, photoRect.width, photoRect.height);
-  }
-
-  if (photo.complete) layout();
-  else photo.addEventListener('load', layout);
-  window.addEventListener('resize', layout);
-  window.addEventListener('orientationchange', () => setTimeout(layout, 120));
+  const keyGrid = document.getElementById('keyGrid');
+  const sideKeys = document.getElementById('sideKeys');
 
   const programs = [
-    { file: 'PAREIDOLIA', href: 'https://pareidolia.tallkidd.com' },
-    { file: 'PALUDARIUM', href: 'https://paludarium.tallkidd.com' },
-    { file: 'CCTV', href: 'https://cctv.tallkidd.com' }
+    { file: 'PAREIDOLIA', url: 'https://pareidolia.tallkidd.com' },
+    { file: 'PALUDARIUM', url: 'https://paludarium.tallkidd.com' },
+    { file: 'CCTV', url: 'https://cctv.tallkidd.com' }
   ];
 
   const rows = [
-    [["←", 'back'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['HOME', ''], ['DEL', 'back']],
-    [['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['RESTORE', '']],
-    [['RUN', 'run'], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'wide-2']],
-    [['C=', ''], ['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', '', 'wide-2']],
-    [['SPACE', ' ', 'wide-6']]
+    [
+      ['RUN', 'run'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['0', '0'], ['+', '+'], ['-', '-'], ['£', ''], ['DEL', 'back']
+    ],
+    [
+      ['CTRL', ''], ['Q', 'q'], ['W', 'w'], ['E', 'e'], ['R', 'r'], ['T', 't'], ['Y', 'y'], ['U', 'u'], ['I', 'i'], ['O', 'o'], ['P', 'p'], ['@', '@'], ['*', '*'], ['↑', ''], ['HOME', '']
+    ],
+    [
+      ['C=', ''], ['A', 'a'], ['S', 's'], ['D', 'd'], ['F', 'f'], ['G', 'g'], ['H', 'h'], ['J', 'j'], ['K', 'k'], ['L', 'l'], [':', ':'], [';', ';'], ['=', '='], ['RETURN', 'enter', 'w2']
+    ],
+    [
+      ['SHIFT', ''], ['Z', 'z'], ['X', 'x'], ['C', 'c'], ['V', 'v'], ['B', 'b'], ['N', 'n'], ['M', 'm'], [',', ','], ['.', '.'], ['/', '/'], ['SHIFT', ''], ['SPACE', ' ', 'space']
+    ]
   ];
 
-  const kbPlate = document.getElementById('kbPlate');
-  const keyEls = {};
+  const side = [
+    ['CLR\nHOME', 'clear'],
+    ['INST\nDEL', 'back'],
+    ['↑', ''],
+    ['↓', '']
+  ];
+
+  const liveKeys = {};
+  let output = '';
   let command = '';
-  let out = '';
   let ready = false;
 
-  function flash(key) {
-    const list = keyEls[key] || keyEls[key && key.toLowerCase()];
-    if (!list) return;
-    list.forEach(element => {
-      element.classList.add('active');
-      setTimeout(() => element.classList.remove('active'), 100);
-    });
-  }
-
-  function addKey(label, key, wide) {
-    const element = document.createElement('div');
-    element.className = 'key' + (wide ? ' ' + wide : '');
-    element.textContent = label;
-    element.addEventListener('pointerdown', event => {
+  function makeKey(label, value, modifier = '') {
+    const button = document.createElement('button');
+    button.className = `key ${modifier}`.trim();
+    button.type = 'button';
+    button.innerHTML = label.replace('\n', '<span class="legend"><br></span>');
+    button.setAttribute('aria-label', label.replace('\n', ' '));
+    button.addEventListener('pointerdown', event => {
       event.preventDefault();
-      handleKey(key);
-      flash(key);
+      pressVisual(value || label);
+      handle(value);
     });
-    if (key) (keyEls[key] ??= []).push(element);
-    return element;
+    if (value) (liveKeys[value.toLowerCase()] ||= []).push(button);
+    return button;
   }
 
   rows.forEach(row => {
     const rowEl = document.createElement('div');
-    rowEl.className = 'kb-row';
-    row.forEach(([label, key, wide]) => rowEl.appendChild(addKey(label, key, wide)));
-    kbPlate.appendChild(rowEl);
+    rowEl.className = 'key-row';
+    row.forEach(([label, value, modifier]) => rowEl.appendChild(makeKey(label, value, modifier)));
+    keyGrid.appendChild(rowEl);
   });
 
-  function render(cursor = true) {
-    const hint = ready && !command ? '<span class="tap-hint">TAP SCREEN TO TYPE</span>' : '';
-    screen.innerHTML = out + (command || '') + (cursor ? '<span class="cursor"></span>' : '') + hint;
-    screen.scrollTop = screen.scrollHeight;
-  }
+  side.forEach(([label, value]) => sideKeys.appendChild(makeKey(label, value)));
 
-  function typeText(text, speed = 40) {
-    return new Promise(resolve => {
-      let index = 0;
-      const timer = setInterval(() => {
-        const char = text[index];
-        out += char;
-        if (char.trim()) flash(char.toLowerCase());
-        render();
-        index += 1;
-        if (index >= text.length) {
-          clearInterval(timer);
-          resolve();
-        }
-      }, speed);
+  function pressVisual(value) {
+    const buttons = liveKeys[String(value).toLowerCase()] || [];
+    buttons.forEach(button => {
+      button.classList.add('pressed');
+      setTimeout(() => button.classList.remove('pressed'), 105);
     });
   }
 
-  function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+  function render(cursor = true) {
+    terminal.innerHTML = output + escapeHtml(command) + (cursor ? '<span class="cursor"></span>' : '');
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  }
+
+  function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  async function type(text, speed = 24) {
+    for (const char of text) {
+      output += char === '\n' ? '<br>' : escapeHtml(char);
+      if (char.trim()) pressVisual(char);
+      render();
+      await sleep(speed);
+    }
+  }
 
   function listing() {
-    let html = out + '0 "TALLKIDD MAIN MACHINE" 64\n';
-    programs.forEach((program, index) => {
+    const files = programs.map((program, index) => {
       const blocks = String((index + 1) * 3).padStart(3, ' ');
-      html += `${blocks} <a class="prog" href="${program.href}" data-file="${program.file}">"${program.file}"</a> PRG\n`;
-    });
-    return html + '664 BLOCKS FREE\n\n';
+      return `${blocks} <a href="${program.url}" data-program="${program.file}">"${program.file}"</a> PRG<br>`;
+    }).join('');
+    return `0 "TALLKIDD MAIN MACHINE" 64<br>${files}664 BLOCKS FREE<br><br>`;
   }
 
-  async function boot() {
-    await typeText('**** COMMODORE 64 BASIC V2 ****\n\n', 24);
-    await typeText('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 18);
-    await typeText('READY.\n', 28);
-    await wait(420);
-    await typeText('LOAD "$",8\n', 60);
-    await wait(220);
-    await typeText('SEARCHING FOR $\n', 30);
-    await wait(320);
-    await typeText('LOADING\nREADY.\n', 30);
-    await wait(160);
-    await typeText('LIST\n\n', 52);
-    out = listing();
-    render();
-    await typeText('READY.\n', 28);
-    ready = true;
-    render();
-    bindLinks();
-  }
-
-  function bindLinks() {
-    document.querySelectorAll('a.prog').forEach(link => {
+  function bindProgramLinks() {
+    terminal.querySelectorAll('[data-program]').forEach(link => {
       link.addEventListener('click', event => {
         event.preventDefault();
-        runProgram(link.dataset.file, link.href);
+        const program = programs.find(item => item.file === link.dataset.program);
+        if (program) run(program);
       });
     });
   }
 
-  function matchProgram(input) {
-    const normalized = input.toUpperCase();
-    return programs.find(program => normalized.includes(program.file));
+  async function boot() {
+    await type('**** COMMODORE 64 BASIC V2 ****\n\n', 19);
+    await type('64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n', 14);
+    await type('READY.\n', 25);
+    await sleep(320);
+    await type('LOAD "$",8\n', 43);
+    await sleep(150);
+    await type('SEARCHING FOR $\n', 23);
+    await sleep(220);
+    await type('LOADING\nREADY.\n', 24);
+    await sleep(120);
+    await type('LIST\n\n', 45);
+    output = listing();
+    render();
+    bindProgramLinks();
+    await type('READY.\n', 26);
+    ready = true;
+    render();
+  }
+
+  function findProgram(text) {
+    const upper = text.toUpperCase();
+    return programs.find(program => upper.includes(program.file));
+  }
+
+  async function run(program) {
+    ready = false;
+    output += `LOAD &quot;${program.file}&quot;,8,1<br>`;
+    render();
+    await sleep(170);
+    await type(`SEARCHING FOR ${program.file}\n`, 26);
+    await sleep(300);
+    await type('LOADING\nREADY.\nRUN\n', 25);
+    await sleep(350);
+    window.location.assign(program.url);
   }
 
   async function execute() {
     const typed = command.trim();
-    if (!typed) return;
-    out += command + '\n';
+    if (!typed || !ready) return;
+    output += escapeHtml(command) + '<br>';
     command = '';
     render();
-    const program = matchProgram(typed);
+
     if (/^LIST$/i.test(typed)) {
-      out = '';
-      out = listing();
+      output = listing();
       render();
+      bindProgramLinks();
       return;
     }
+
+    const program = findProgram(typed);
     if (program) {
-      await runProgram(program.file, program.href);
+      await run(program);
       return;
     }
-    out += '?FILE NOT FOUND ERROR\nREADY.\n';
+
+    output += '?FILE NOT FOUND ERROR<br>READY.<br>';
     render();
   }
 
-  async function runProgram(file, href) {
-    ready = false;
-    out += `LOAD "${file}",8,1\n`;
-    render();
-    await wait(240);
-    await typeText(`SEARCHING FOR ${file}\n`, 30);
-    await wait(420);
-    await typeText('LOADING\nREADY.\nRUN\n', 30);
-    await wait(430);
-    window.location.href = href;
-  }
-
-  function handleKey(key) {
-    if (!ready) return;
-    if (key === 'back') {
+  function handle(value) {
+    if (!ready || !value) return;
+    if (value === 'back') {
       command = command.slice(0, -1);
-      render();
-      return;
-    }
-    if (key === 'enter' || key === 'run') {
+    } else if (value === 'clear') {
+      output = '';
+      command = '';
+    } else if (value === 'enter' || value === 'run') {
       execute();
       return;
+    } else if (value.length === 1) {
+      command += value.toUpperCase();
     }
-    if (key && key.length === 1) {
-      command += key.toUpperCase();
-      render();
-    }
+    render();
   }
 
-  function focusInput() {
+  function focusMobile() {
     if (!ready) return;
-    mobileInput.value = '';
     mobileInput.focus();
   }
 
-  screen.addEventListener('pointerdown', focusInput);
+  terminal.addEventListener('pointerdown', focusMobile);
 
-  screen.addEventListener('keydown', event => {
+  document.addEventListener('keydown', event => {
     if (!ready) return;
     if (event.key === 'Enter') {
       event.preventDefault();
-      execute();
+      pressVisual('enter');
+      handle('enter');
     } else if (event.key === 'Backspace') {
       event.preventDefault();
-      handleKey('back');
+      pressVisual('back');
+      handle('back');
     } else if (event.key.length === 1) {
-      event.preventDefault();
-      handleKey(event.key);
-    }
-  });
-
-  mobileInput.addEventListener('input', () => {
-    const value = mobileInput.value;
-    const delta = value.slice(command.length);
-    if (delta) for (const char of delta) handleKey(char);
-  });
-
-  mobileInput.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      execute();
-      mobileInput.value = '';
-    } else if (event.key === 'Backspace' && mobileInput.value.length <= command.length) {
-      handleKey('back');
-    }
-  });
-
-  document.addEventListener('keydown', event => {
-    if (document.activeElement === mobileInput || document.activeElement === screen || !ready) return;
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      execute();
-    } else if (event.key === 'Backspace') {
-      event.preventDefault();
-      handleKey('back');
-    } else if (event.key.length === 1) {
-      handleKey(event.key);
+      pressVisual(event.key);
+      handle(event.key);
     }
   });
 

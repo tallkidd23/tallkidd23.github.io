@@ -50,9 +50,108 @@ body {
 }
 
 /* 
-  Perfect CRT Alignment:
-  top: 42.6%, height: 17.9% with 0.45% top padding.
+  Ultra-subtle, organic CSS coffee steam wisps:
+  Positioned precisely above the blue ceramic mug rim.
 */
+.coffee-steam {
+  position: absolute;
+  left: 13.5%;
+  top: 59.5%;
+  width: 6.5%;
+  height: 9%;
+  pointer-events: none;
+  overflow: visible;
+  filter: blur(2.5px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+}
+
+.wisp {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 40% 40%;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.45) 0%, rgba(240, 235, 225, 0.22) 45%, transparent 75%);
+}
+
+.wisp-1 {
+  left: 20%;
+  width: 50%;
+  height: 65%;
+  animation: rise-and-drift-1 5.4s ease-in-out infinite;
+}
+
+.wisp-2 {
+  left: 42%;
+  width: 42%;
+  height: 75%;
+  animation: rise-and-drift-2 6.8s ease-in-out 1.9s infinite;
+}
+
+.wisp-3 {
+  left: 30%;
+  width: 48%;
+  height: 70%;
+  animation: rise-and-drift-3 6.1s ease-in-out 3.6s infinite;
+}
+
+@keyframes rise-and-drift-1 {
+  0% {
+    transform: translateY(0) scale(0.65) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.55;
+    transform: translateY(-25%) scale(0.85) rotate(4deg);
+  }
+  60% {
+    opacity: 0.35;
+    transform: translateY(-60%) scale(1.15) rotate(-3deg) skewX(4deg);
+  }
+  100% {
+    transform: translateY(-105%) scale(1.45) rotate(8deg) skewX(8deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rise-and-drift-2 {
+  0% {
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.48;
+    transform: translateY(-28%) scale(0.9) rotate(-5deg);
+  }
+  70% {
+    opacity: 0.28;
+    transform: translateY(-68%) scale(1.25) rotate(4deg) skewX(-5deg);
+  }
+  100% {
+    transform: translateY(-110%) scale(1.55) rotate(-6deg) skewX(-10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rise-and-drift-3 {
+  0% {
+    transform: translateY(0) scale(0.7) rotate(0deg);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.42;
+    transform: translateY(-30%) scale(0.95) rotate(3deg);
+  }
+  75% {
+    opacity: 0.22;
+    transform: translateY(-75%) scale(1.3) rotate(-4deg) skewX(5deg);
+  }
+  100% {
+    transform: translateY(-115%) scale(1.6) rotate(6deg) skewX(9deg);
+    opacity: 0;
+  }
+}
+
+/* Perfect CRT Alignment */
 .crt {
   position: absolute;
   left: 42.225%;
@@ -86,10 +185,7 @@ body {
   );
 }
 
-/* 
-  Pure inline document flow: 
-  The cursor is rendered directly inside the text buffer at the end of the line.
-*/
+/* Pure inline document flow */
 .terminal {
   width: 100%;
   height: 100%;
@@ -220,6 +316,13 @@ body {
 
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
+
+  <!-- Subtle coffee steam animation element perfectly placed above mug -->
+  <div class="coffee-steam" aria-hidden="true">
+    <div class="wisp wisp-1"></div>
+    <div class="wisp wisp-2"></div>
+    <div class="wisp wisp-3"></div>
+  </div>
 
   <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
     <div class="terminal" id="terminal"></div>

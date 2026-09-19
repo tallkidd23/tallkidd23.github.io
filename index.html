@@ -50,108 +50,9 @@ body {
 }
 
 /* 
-  Ultra-subtle, organic CSS coffee steam wisps:
-  Positioned precisely above the blue ceramic mug rim.
+  Perfect CRT Alignment:
+  top: 42.6%, height: 17.9% with 0.45% top padding.
 */
-.coffee-steam {
-  position: absolute;
-  left: 13.5%;
-  top: 59.5%;
-  width: 6.5%;
-  height: 9%;
-  pointer-events: none;
-  overflow: visible;
-  filter: blur(2.5px);
-  opacity: 0.55;
-  mix-blend-mode: screen;
-}
-
-.wisp {
-  position: absolute;
-  bottom: 0;
-  border-radius: 50% 50% 40% 40%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.45) 0%, rgba(240, 235, 225, 0.22) 45%, transparent 75%);
-}
-
-.wisp-1 {
-  left: 20%;
-  width: 50%;
-  height: 65%;
-  animation: rise-and-drift-1 5.4s ease-in-out infinite;
-}
-
-.wisp-2 {
-  left: 42%;
-  width: 42%;
-  height: 75%;
-  animation: rise-and-drift-2 6.8s ease-in-out 1.9s infinite;
-}
-
-.wisp-3 {
-  left: 30%;
-  width: 48%;
-  height: 70%;
-  animation: rise-and-drift-3 6.1s ease-in-out 3.6s infinite;
-}
-
-@keyframes rise-and-drift-1 {
-  0% {
-    transform: translateY(0) scale(0.65) rotate(0deg);
-    opacity: 0;
-  }
-  25% {
-    opacity: 0.55;
-    transform: translateY(-25%) scale(0.85) rotate(4deg);
-  }
-  60% {
-    opacity: 0.35;
-    transform: translateY(-60%) scale(1.15) rotate(-3deg) skewX(4deg);
-  }
-  100% {
-    transform: translateY(-105%) scale(1.45) rotate(8deg) skewX(8deg);
-    opacity: 0;
-  }
-}
-
-@keyframes rise-and-drift-2 {
-  0% {
-    transform: translateY(0) scale(0.6) rotate(0deg);
-    opacity: 0;
-  }
-  30% {
-    opacity: 0.48;
-    transform: translateY(-28%) scale(0.9) rotate(-5deg);
-  }
-  70% {
-    opacity: 0.28;
-    transform: translateY(-68%) scale(1.25) rotate(4deg) skewX(-5deg);
-  }
-  100% {
-    transform: translateY(-110%) scale(1.55) rotate(-6deg) skewX(-10deg);
-    opacity: 0;
-  }
-}
-
-@keyframes rise-and-drift-3 {
-  0% {
-    transform: translateY(0) scale(0.7) rotate(0deg);
-    opacity: 0;
-  }
-  35% {
-    opacity: 0.42;
-    transform: translateY(-30%) scale(0.95) rotate(3deg);
-  }
-  75% {
-    opacity: 0.22;
-    transform: translateY(-75%) scale(1.3) rotate(-4deg) skewX(5deg);
-  }
-  100% {
-    transform: translateY(-115%) scale(1.6) rotate(6deg) skewX(9deg);
-    opacity: 0;
-  }
-}
-
-/* Perfect CRT Alignment */
 .crt {
   position: absolute;
   left: 42.225%;
@@ -185,7 +86,10 @@ body {
   );
 }
 
-/* Pure inline document flow */
+/* 
+  Pure inline document flow: 
+  The cursor is rendered directly inside the text buffer at the end of the line.
+*/
 .terminal {
   width: 100%;
   height: 100%;
@@ -226,37 +130,6 @@ body {
   left: 0;
   top: 0;
   border: 0;
-}
-
-/* Desktop keyboard press overlay */
-.keys {
-  position: absolute;
-  left: 30%;
-  top: 71.15%;
-  width: 39.7%;
-  height: 7.7%;
-  display: grid;
-  grid-template-rows: repeat(4, 1fr);
-  gap: 4%;
-  padding: 0.2% 0.5%;
-  pointer-events: none;
-}
-
-.key-row {
-  display: grid;
-  grid-template-columns: repeat(15, 1fr);
-  gap: 1.8%;
-}
-
-.key {
-  border-radius: 18%;
-  transition: background 0.055s, transform 0.055s;
-}
-
-.key.down {
-  background: rgba(255, 255, 255, 0.38);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
-  transform: translateY(1px);
 }
 
 /* Carved desk text */
@@ -306,23 +179,12 @@ body {
     top: 95.9%;
     font-size: clamp(12px, 3.6vw, 18px);
   }
-
-  .keys {
-    display: none;
-  }
 }
 </style>
 </head>
 
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
-
-  <!-- Subtle coffee steam animation element perfectly placed above mug -->
-  <div class="coffee-steam" aria-hidden="true">
-    <div class="wisp wisp-1"></div>
-    <div class="wisp wisp-2"></div>
-    <div class="wisp wisp-3"></div>
-  </div>
 
   <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
     <div class="terminal" id="terminal"></div>
@@ -338,8 +200,6 @@ body {
       aria-label="C64 command input"
     >
   </section>
-
-  <div class="keys" id="keys" aria-hidden="true"></div>
 
   <div class="carved" aria-hidden="true">
     <span>TAP SCREEN · LOAD "NAME",8,1 · RUN</span>
@@ -357,7 +217,6 @@ const programs = {
 const crt = document.getElementById("crt");
 const terminal = document.getElementById("terminal");
 const mobile = document.getElementById("mobileInput");
-const keys = document.getElementById("keys");
 
 let historyText = "";
 let buffer = "";
@@ -407,13 +266,6 @@ function boot() {
     }
   };
   next();
-}
-
-function press(code) {
-  const key = document.querySelector(`[data-code="${code}"]`);
-  if (!key) return;
-  key.classList.add("down");
-  setTimeout(() => key.classList.remove("down"), 100);
 }
 
 function addCharacters(text) {
@@ -489,7 +341,6 @@ function execute() {
 }
 
 document.addEventListener("keydown", (event) => {
-  press(event.code);
   if (!ready || event.target === mobile) return;
 
   if (event.key === "Enter") {
@@ -535,33 +386,6 @@ mobile.addEventListener("keydown", (event) => {
     execute();
   }
 });
-
-const codes = [
-  "F1", "F3", "F5", "F7", "F2",
-  "F4", "F6", "F8", "Escape", "Digit1",
-  "Digit2", "Digit3", "Digit4", "Digit5", "Backspace",
-  "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT",
-  "KeyY", "KeyU", "KeyI", "KeyO", "KeyP",
-  "BracketLeft", "BracketRight", "Enter", "KeyA", "KeyS",
-  "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ",
-  "KeyK", "KeyL", "Semicolon", "Quote", "ShiftLeft",
-  "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB",
-  "KeyN", "KeyM", "Comma", "Period", "Slash",
-  "ShiftRight", "Space", "Space", "Space", "Space",
-  "Space", "Space"
-];
-
-for (let rowNumber = 0; rowNumber < 4; rowNumber++) {
-  const row = document.createElement("div");
-  row.className = "key-row";
-  for (let column = 0; column < 15; column++) {
-    const key = document.createElement("i");
-    key.className = "key";
-    key.dataset.code = codes[rowNumber * 15 + column] || "";
-    row.appendChild(key);
-  }
-  keys.appendChild(row);
-}
 
 boot();
 </script>

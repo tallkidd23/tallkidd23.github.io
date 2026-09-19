@@ -50,7 +50,7 @@ body {
 }
 
 /* 
-  Lowered by another 0.75 lines:
+  Perfect CRT Alignment:
   top: 42.6%, height: 17.9% with 0.45% top padding.
 */
 .crt {
@@ -247,7 +247,8 @@ body {
 const programs = {
   JESSEOS: "https://jesseos.tallkidd.com",
   PAREIDOLIA: "https://pareidolia.tallkidd.com",
-  CCTV: "https://cctv.tallkidd.com"
+  CCTV: "https://cctv.tallkidd.com",
+  PALUDARIUM: "https://paludarium.tallkidd.com"
 };
 
 const crt = document.getElementById("crt");
@@ -280,6 +281,7 @@ function directory() {
   appendLine('10 "JESSEOS" PRG');
   appendLine('20 "PAREIDOLIA" PRG');
   appendLine('30 "CCTV" PRG');
+  appendLine('40 "PALUDARIUM" PRG');
   appendLine("38911 BLOCKS FREE.");
 }
 

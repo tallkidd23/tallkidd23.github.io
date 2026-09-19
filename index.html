@@ -49,10 +49,7 @@ body {
   background: url("assets/C64.PNG") center / contain no-repeat;
 }
 
-/* 
-  Perfect CRT Alignment:
-  top: 42.6%, height: 17.9% with 0.45% top padding.
-*/
+/* CRT alignment and terminal display */
 .crt {
   position: absolute;
   left: 42.225%;
@@ -65,7 +62,8 @@ body {
   cursor: text;
   color: var(--c64-blue);
   font-family: C64Pro, "Courier New", monospace;
-  font-size: clamp(3px, 0.47vw, 5px);
+  /* Slightly enlarged for desktop and tablet readability. */
+  font-size: clamp(3.5px, 0.58vw, 6px);
   line-height: 1.12;
   text-shadow: 0 0 1px var(--c64-glow);
   border-radius: 9% 9% 11% 11% / 7% 7% 9% 9%;
@@ -86,10 +84,6 @@ body {
   );
 }
 
-/* 
-  Pure inline document flow: 
-  The cursor is rendered directly inside the text buffer at the end of the line.
-*/
 .terminal {
   width: 100%;
   height: 100%;
@@ -185,10 +179,8 @@ body {
 
 <body>
 <main class="scene" aria-label="Interactive Commodore 64 desk">
-
   <section class="crt" id="crt" aria-label="Commodore 64 terminal" tabindex="0">
     <div class="terminal" id="terminal"></div>
-
     <input
       id="mobileInput"
       class="mobile-input"
@@ -225,10 +217,12 @@ let ready = false;
 
 function render() {
   let outputHtml = historyText;
+
   if (ready) {
     outputHtml += buffer;
     outputHtml += '<span class="cursor" aria-hidden="true"></span>';
   }
+
   terminal.innerHTML = outputHtml;
   terminal.scrollTop = terminal.scrollHeight;
 }
@@ -256,15 +250,18 @@ function boot() {
   ];
 
   let n = 0;
-  const next = () => {
+
+  function next() {
     if (n < intro.length) {
       appendLine(intro[n++]);
       setTimeout(next, 175);
-    } else {
-      ready = true;
-      render();
+      return;
     }
-  };
+
+    ready = true;
+    render();
+  }
+
   next();
 }
 
@@ -274,6 +271,7 @@ function addCharacters(text) {
       buffer += char.toUpperCase();
     }
   }
+
   render();
 }
 
@@ -283,6 +281,7 @@ function loadProgram(name) {
     appendLine("READY.");
     return;
   }
+
   loaded = name;
   appendLine("SEARCHING FOR " + name);
   appendLine("LOADING");
@@ -320,6 +319,7 @@ function execute() {
       appendLine("READY.");
       return;
     }
+
     appendLine("BOOTING " + loaded + "...");
     setTimeout(() => {
       location.assign(programs[loaded]);
@@ -340,51 +340,71 @@ function execute() {
   loadProgram(name);
 }
 
-document.addEventListener("keydown", (event) => {
-  if (!ready || event.target === mobile) return;
+function eraseCharacter() {
+  buffer = buffer.slice(0, -1);
+  mobile.value = "";
+  render();
+}
+
+function handleTerminalKey(event) {
+  if (!ready) return;
 
   if (event.key === "Enter") {
     event.preventDefault();
+    mobile.value = "";
     execute();
     return;
   }
+
   if (event.key === "Backspace") {
     event.preventDefault();
-    buffer = buffer.slice(0, -1);
-    render();
+    eraseCharacter();
     return;
   }
-  if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
+
+  if (
+    event.key.length === 1 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey
+  ) {
     event.preventDefault();
+    mobile.value = "";
     addCharacters(event.key);
   }
+}
+
+/* Desktop keys are handled here when the hidden input is not focused. */
+document.addEventListener("keydown", (event) => {
+  if (event.target === mobile) return;
+  handleTerminalKey(event);
 });
+
+/* After the CRT is clicked, the hidden input owns keyboard focus. */
+mobile.addEventListener("keydown", handleTerminalKey);
 
 crt.addEventListener("click", () => {
   mobile.focus();
 });
 
+/* Mobile browsers may emit deletion as beforeinput instead of keydown. */
 mobile.addEventListener("beforeinput", (event) => {
   if (!ready) return;
+
   if (event.inputType === "deleteContentBackward") {
     event.preventDefault();
-    buffer = buffer.slice(0, -1);
-    render();
+    eraseCharacter();
   }
 });
 
 mobile.addEventListener("input", () => {
-  if (mobile.value) {
-    addCharacters(mobile.value);
-    mobile.value = "";
-  }
-});
+  const typed = mobile.value.replace(/[\r\n]/g, "");
 
-mobile.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    execute();
+  if (typed) {
+    addCharacters(typed);
   }
+
+  mobile.value = "";
 });
 
 boot();
